@@ -1,0 +1,31 @@
+. "$PKG/myx/myx.distro-prepare/sh-lib/lib-paths.include"
+
+CompileJavaClassTo(){
+	SRC_NAME=$1; shift
+	DST_PATH=$1; shift
+	CLS_PATH=$1; shift
+	CLS_NAME=$1; shift
+	
+	SRC_PATH="$PKG/$SRC_NAME/java"
+	
+	# echo "Running $CLS_NAME from $SRC_NAME at $CLS_PATH" >&2
+	
+	javac -d "$DST_PATH" -cp "CLS_PATH" -sourcepath "$SRC_PATH" -g -parameters "$SRC_PATH/$(echo "$CLS_NAME" | sed 's/\./\//g').java"
+}
+
+RunJavaClassSource(){
+	set -e
+	
+	SRC_NAME=$1; shift
+	CLS_NAME=$1; shift
+	
+	DST_NAME="$OUTPUT_JAVA/$SRC_NAME/java"
+	CLS_PATH="$DST_NAME:"
+
+	# echo "  >  Running Java Class (Clean): $CLS_NAME"  >&2
+
+	mkdir -p "$DST_NAME"
+
+	CompileJavaClassTo "$SRC_NAME" "$DST_NAME" "$CLS_PATH" "$CLS_NAME"
+	java -cp "$CLS_PATH" "$CLS_NAME" "$@"
+}

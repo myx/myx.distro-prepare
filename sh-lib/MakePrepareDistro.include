@@ -1,0 +1,31 @@
+. "$PKG/myx/myx.distro-prepare/sh-lib/lib-paths.include"
+
+echo "Initializing Source Build" >&2
+echo "  `DumpDistroPaths`" >&2
+
+MakePrepareDistro(){
+
+	. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassClean.include" ;
+	RunJavaClassClean myx/myx.distro-prepare ru.myx.distro.DistroStaticCommand \
+			--source-root "$PKG" \
+			--output-root "$OUTPUT_ROOT" \
+			--import-from-source --prepare-build --print-sequence
+	
+
+	# fetch missing to cache
+	
+	
+
+	. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassSource.include" ;
+	RunJavaClassSource myx/myx.distro-prepare ru.myx.distro.DistroStaticCommand \
+			--source-root "$PKG" \
+			--output-root "$OUTPUT_ROOT" \
+			--import-from-distro --print-repositories -p "" --print-projects --compile-all
+}
+
+CleanOutputDirectory(){
+
+	echo "Cleaning Output directory" >&2
+	rm -rf "$OUTPUT_ROOT"
+}
+

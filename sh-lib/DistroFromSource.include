@@ -1,0 +1,62 @@
+[ -z "$PKG" ] && echo '$PKG' is not set! >&2 && exit 1
+
+#
+# Runs DistroCommand by compiling it's source code to a temporary folder 
+#
+DistroFromSource(){
+	local DIR_OUT="$OUT/cached/myx/myx.distro-prepare/java"
+	local DIR_SRC="$PKG/myx/myx.distro-prepare/java"
+
+	local FIL_OUT="$DIR_OUT/ru/myx/distro/DistroSourceCommand.class"
+	local FIL_CPL="$DIR_SRC/ru/myx/distro/DistroSourceCommand.class"
+	local FIL_SRC="$DIR_SRC/ru/myx/distro/DistroSourceCommand.java"
+	
+	local HAS_OUT=$(test -f "$FIL_OUT" && echo 'true' || true)
+	local HAS_CPL=$(test -f "$FIL_CPL" && echo 'true' || true)
+	local HAS_SRC=$(test -f "$FIL_SRC" && echo 'true' || true)
+
+	local USE_OUT=$(test -n "$HAS_OUT" && \
+			test -z "$HAS_CPL" -o ! "$FIL_OUT" -ot "$FIL_CPL" && \
+			test -z "$HAS_SRC" -o ! "$FIL_OUT" -ot "$FIL_SRC" && \
+			echo "true" || true
+		)
+
+	local USE_CPL=$(test -n "$HAS_CPL" -a -z "$USE_OUT" && \
+			test -z "$HAS_OUT" -o ! "$FIL_CPL" -ot "$FIL_OUT" && \
+			test -z "$HAS_SRC" -o ! "$FIL_CPL" -ot "$FIL_SRC" && \
+			echo "true" || true
+		)
+
+	local USE_SRC=$(test -n "$HAS_SRC" -a -z "$USE_OUT" -a -z "USE_CPL" && \
+			test -z "$HAS_OUT" -o ! "$FIL_SRC" -ot "$FIL_OUT" && \
+			test -z "$HAS_CPL" -o ! "$FIL_SRC" -ot "$FIL_CPL" && \
+			echo "true" || true
+		)
+
+	test -n "$USE_SRC" -o -n "$USE_CPL" -o -n "$USE_OUT" || \
+		( echo "No sources available, need to fetch!" ; false )
+
+	test -z "$USE_OUT" || \
+		java -cp "$DIR_OUT" ru.myx.distro.DistroSourceCommand "$@"
+	
+	test -z "$USE_CPL" || \
+		java -cp "$DIR_SRC" ru.myx.distro.DistroSourceCommand "$@"
+
+	test -z "$USE_SRC" || (
+		. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassClean.include" ;
+		RunJavaClassClean \
+			"myx/myx.distro-prepare" \
+			ru.myx.distro.DistroSourceCommand \
+			"$@" \
+	)
+
+	return 0
+	
+	test -z "$TMP_SRC" || (
+		. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassTemp.include" ;
+		RunJavaClassTemp \
+			"$PKG/myx/myx.distro-prepare/java" \
+			ru.myx.distro.DistroSourceCommand \
+			"$@" \
+	)
+}

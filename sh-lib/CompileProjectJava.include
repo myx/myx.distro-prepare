@@ -1,0 +1,28 @@
+. "$PKG/myx/myx.distro-prepare/sh-lib/lib-paths.include"
+
+
+CompileProjectJava(){
+	REPO_NAME=$1; shift
+	PROJ_NAME=$1; shift
+	REPO_JAVA="$OUTPUT_JAVA/$REPO_NAME"
+	PROJ_BASE="$REPO_JAVA/$PROJ_NAME"
+
+	echo "Compiling project $PROJ_NAME" >&2
+	
+	( \
+		. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassSource.include" ;
+		RunJavaClassSource myx/myx.distro-prepare ru.myx.distro.prepare.MakeCompileSources "$PKG" "$OUTPUT_ROOT" --project "$PROJ_NAME" \
+	)
+
+	return 0
+
+	PROJ_JAVA="$PROJ_BASE/java"
+	REPO_SRCS="$PKG/$REPO_NAME/$PROJ_NAME"
+
+	rsync -azivC --exclude '*.class' --exclude '.*' --delete "$REPO_SRCS/java/" "$PROJ_JAVA"
+	
+	( \
+		. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassSource.include" ;
+		RunJavaClassSource myx/myx.distro-prepare ru.myx.distro.prepare.MakeCompileSources "$PKG" "$OUTPUT_ROOT" --from-output --project "$PROJ_NAME" \
+	)
+}

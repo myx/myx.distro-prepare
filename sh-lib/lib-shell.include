@@ -1,0 +1,76 @@
+set -e
+
+[ -z "$APP" ] && echo '$APP' is not set! >&2 && exit 1
+
+ListAllSourceRepositories(){
+	for LINE in `find "$APP/source" -mindepth 2 -maxdepth 2 -name repository.inf | sort | sed 's!/repository.inf$!!'` ; do
+		echo "${LINE#$APP/source/}"
+	done
+}
+
+
+
+CheckEchoSourcePackagePaths(){
+	local PKG_PATH="$1"
+	[ -z "$PKG_PATH" ] && echo '$PKG_PATH' is not set! >&2 && exit 1
+	[ ! -d "$PKG_PATH" ] && return 0
+
+	local NOT_DEEP="$2"
+	
+	[ -f "$PKG_PATH/project.inf" ] && echo "$PKG_PATH" && return 0
+	
+	[ -d "$PKG_PATH/ae3-packages" ] && echo "$PKG_PATH" && return 0
+	
+	if [ -z "$NOT_DEEP" ] ; then
+		for CHK_PATH in `ListPublicFolders "$PKG_PATH"` ; do
+			CheckEchoSourcePackagePaths "$CHK_PATH" "TRUE"
+		done	
+	fi
+}
+
+ListPublicFolders(){
+	find "$1" -mindepth 1 -maxdepth 1 -type d | sort
+}
+
+ListAllSourceRepositoryPackages(){
+	local REPO_KEY="${1#$APP/source/}"
+	[ -z "$REPO_KEY" ] && echo '$REPO_KEY' is not set! >&2 && exit 1
+	
+	for CHK_PATH in `ListPublicFolders "$APP/source/$REPO_KEY"` ; do
+		for LINE in `CheckEchoSourcePackagePaths "$CHK_PATH"` ; do
+			echo "${LINE#$APP/source/}"
+		done
+	done	
+}
+
+ListAllSourcePackageActions(){
+	local ACT_PATH="$APP/source/${1#$APP/source/}/actions"
+	[ -d "$ACT_PATH" ] || return 0
+	find "$ACT_PATH" -mindepth 1 -type f | sort
+}
+
+ListAllSourceRepositoryActions(){
+	local REPO_KEY="${1#$APP/source/}"
+	[ -z "$REPO_KEY" ] && echo '$REPO_KEY' is not set! >&2 && exit 1
+
+	for PKG in $( ListAllSourceRepositoryPackages "$APP/source/$REPO_KEY" ) ; do
+		ListAllSourcePackageActions "$PKG"
+	done	
+}
+
+ListAllSourceActions(){
+	for REPO in $( ListAllSourceRepositories ) ; do
+		ListAllSourceRepositoryActions "$REPO"
+	done	
+}
+
+DumpDistroPaths(){
+	OUTPUT_ROOT="`dirname "$PKG"`/output"
+	OUTPUT_JAVA="$OUTPUT_ROOT/cached"
+	OUTPUT_DSTR="$OUTPUT_ROOT/distro"
+
+	echo "  OUTPUT_ROOT=$OUTPUT_ROOT"
+	echo "  OUTPUT_JAVA=$OUTPUT_JAVA"
+	echo "  OUTPUT_DSTR=$OUTPUT_DSTR"
+	echo "  SOURCE_ROOT=$SOURCE_ROOT"
+}

@@ -1,0 +1,8 @@
+Name: myx.distro-prepare
+Title: Distro builder package, prepare distro indices 
+Requires: java 
+Augments: developer-sdk:recommended
+Suggests: 
+Declares: 
+Provides: 
+Replaces: 

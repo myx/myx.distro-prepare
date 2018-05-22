@@ -1,0 +1,15 @@
+. "$PKG/myx/myx.distro-prepare/sh-lib/lib-paths.include"
+
+
+CompileRepositoryJava(){
+	REPO_NAME=$1; shift
+	REPO_JAVA="$OUTPUT_JAVA/$REPO_NAME"
+
+	echo "Compiling repository $REPO_NAME" >&2
+
+
+	( \
+		. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassSource.include" ;
+		RunJavaClassSource myx/myx.distro-prepare ru.myx.distro.prepare.MakeCompileSources "$PKG" "$OUTPUT_ROOT" --repository "$REPO_NAME" \
+	)
+}
