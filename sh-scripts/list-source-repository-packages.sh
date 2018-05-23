@@ -23,6 +23,6 @@ ListSourceRepositoryPackages(){
 
 case "$0" in
 	*/sh-scripts/list-source-repository-packages.sh) 
-		ListSourceRepositoryPackages $@
+		ListSourceRepositoryPackages "$@"
 	;;
 esac

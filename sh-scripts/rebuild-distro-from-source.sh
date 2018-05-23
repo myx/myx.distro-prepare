@@ -27,6 +27,6 @@ RebuildDistroFromSource(){
 
 case "$0" in
 	*/sh-scripts/rebuild-distro-from-source.sh) 
-		RebuildDistroFromSource $@
+		RebuildDistroFromSource "$@"
 	;;
 esac

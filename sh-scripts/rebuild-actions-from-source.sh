@@ -42,6 +42,6 @@ RebuildActionsFromSource(){
 
 case "$0" in
 	*/sh-scripts/rebuild-actions-from-source.sh) 
-		RebuildActionsFromSource $@
+		RebuildActionsFromSource "$@"
 	;;
 esac

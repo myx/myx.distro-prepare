@@ -15,6 +15,6 @@ ListAllSourceRepositories(){
 
 case "$0" in
 	*/sh-scripts/list-all-source-repositories.sh) 
-		ListAllSourceRepositories $@
+		ListAllSourceRepositories "$@"
 	;;
 esac

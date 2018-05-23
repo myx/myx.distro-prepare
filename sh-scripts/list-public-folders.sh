@@ -14,6 +14,6 @@ ListPublicFolders(){
 
 case "$0" in
 	*/sh-scripts/list-public-folders.sh) 
-		ListPublicFolders $@
+		ListPublicFolders "$@"
 	;;
 esac

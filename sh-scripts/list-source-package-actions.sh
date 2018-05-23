@@ -16,6 +16,6 @@ ListSourcePackageActions(){
 
 case "$0" in
 	*/sh-scripts/list-source-package-actions.sh) 
-		ListSourcePackageActions $@
+		ListSourcePackageActions "$@"
 	;;
 esac

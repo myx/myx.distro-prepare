@@ -29,6 +29,6 @@ CheckEchoSourcePackage(){
 
 case "$0" in
 	*/sh-scripts/check-echo-source-package.sh) 
-		CheckEchoSourcePackage $@
+		CheckEchoSourcePackage "$@"
 	;;
 esac
