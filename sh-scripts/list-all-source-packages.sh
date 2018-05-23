@@ -7,12 +7,17 @@ if [ -z "$APP" ] ; then
 	[ -d "$APP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
 fi
 
-. "$APP/source/myx/myx.distro-prepare/sh-lib/lib-shell.include"
+. "$APP/source/myx/myx.distro-prepare/sh-scripts/list-all-source-repositories.sh"
+. "$APP/source/myx/myx.distro-prepare/sh-scripts/list-source-repository-packages.sh"
 
 ListAllSourcePackages(){
 	for REPO in $( ListAllSourceRepositories ) ; do
-		ListAllSourceRepositoryPackages "$REPO"
+		ListSourceRepositoryPackages "$REPO"
 	done	
 }
 
-ListAllSourcePackages
+case "$0" in
+	*/sh-scripts/list-all-source-packages.sh) 
+		ListAllSourcePackages
+	;;
+esac

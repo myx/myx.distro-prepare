@@ -7,4 +7,4 @@ if [ -z "$APP" ] ; then
 	[ -d "$APP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
 fi
 
-. "$APP/source/myx/myx.distro-prepare/sh-scripts/list-all-source-packages.sh"
+"$APP/source/myx/myx.distro-prepare/sh-scripts/list-all-source-packages.sh"
