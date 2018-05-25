@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 
-if [ -z "$APP" ] ; then
+if [ -z "$MMDAPP" ] ; then
 	set -e
-	APP="$( cd $(dirname "$0")/../../../.. ; pwd )"
-	echo "$0: Working in: $APP"  >&2
-	[ -d "$APP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
+	export MMDAPP="$( cd $(dirname "$0")/../../../.. ; pwd )"
+	echo "$0: Working in: $MMDAPP"  >&2
+	[ -d "$MMDAPP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
 fi
 
-. "$APP/source/myx/myx.distro-prepare/sh-scripts/list-public-folders.sh"
-. "$APP/source/myx/myx.distro-prepare/sh-scripts/check-echo-source-package.sh"
+. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-public-folders.sh"
+. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/check-echo-source-package.sh"
 
 ListSourceRepositoryPackages(){
-	local REPO_KEY="${1#$APP/source/}"
+	local REPO_KEY="${1#$MMDAPP/source/}"
 	[ -z "$REPO_KEY" ] && echo '$REPO_KEY' is not set! >&2 && exit 1
 	
-	for CHK_PATH in `ListPublicFolders "$APP/source/$REPO_KEY"` ; do
+	for CHK_PATH in `ListPublicFolders "$MMDAPP/source/$REPO_KEY"` ; do
 		for LINE in `CheckEchoSourcePackage "$CHK_PATH"` ; do
-			echo "${LINE#$APP/source/}"
+			echo "${LINE#$MMDAPP/source/}"
 		done
 	done	
 }

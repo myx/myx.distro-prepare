@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
-if [ -z "$APP" ] ; then
+if [ -z "$MMDAPP" ] ; then
 	set -e
-	APP="$( cd $(dirname "$0")/../../../.. ; pwd )"
-	echo "$0: Working in: $APP"  >&2
-	[ -d "$APP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
+	export MMDAPP="$( cd $(dirname "$0")/../../../.. ; pwd )"
+	echo "$0: Working in: $MMDAPP"  >&2
+	[ -d "$MMDAPP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
 fi
 
 
 ListSourcePackageActions(){
-	local ACT_PATH="$APP/source/${1#$APP/source/}/actions"
+	local ACT_PATH="$MMDAPP/source/${1#$MMDAPP/source/}/actions"
 	[ -d "$ACT_PATH" ] || return 0
 	find "$ACT_PATH" -mindepth 1 -type f | sort
 }

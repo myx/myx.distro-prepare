@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
-if [ -z "$APP" ] ; then
+if [ -z "$MMDAPP" ] ; then
 	set -e
-	APP="$( cd $(dirname "$0")/../../../.. ; pwd )"
-	echo "$0: Working in: $APP"  >&2
-	[ -d "$APP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
+	export MMDAPP="$( cd $(dirname "$0")/../../../.. ; pwd )"
+	echo "$0: Working in: $MMDAPP"  >&2
+	[ -d "$MMDAPP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
 fi
 
 ListAllSourceRepositories(){
-	for LINE in `find "$APP/source" -mindepth 2 -maxdepth 2 -name repository.inf | sort | sed 's!/repository.inf$!!'` ; do
-		echo "${LINE#$APP/source/}"
+	for LINE in `find "$MMDAPP/source" -mindepth 2 -maxdepth 2 -name repository.inf | sort | sed 's!/repository.inf$!!'` ; do
+		echo "${LINE#$MMDAPP/source/}"
 	done
 }
 
