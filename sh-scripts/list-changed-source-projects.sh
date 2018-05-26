@@ -10,19 +10,17 @@ fi
 if [ "`type -t ListAllSourceProjects`" != "function" ] ; then
 . "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-all-source-projects.sh"
 fi
-if [ "`type -t ListSourcePackageActions`" != "function" ] ; then
-. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-source-package-actions.sh"
-fi
 
-
-ListAllSourceActions(){
+ListChangedSourceProjects(){
 	for PKG in $( ListAllSourceProjects ) ; do
-		ListSourcePackageActions "$PKG"
+		if [ -f "$MMDAPP/cached/changed/$PKG" ] ; then
+			echo "$PKG"
+		fi
 	done	
 }
 
 case "$0" in
-	*/sh-scripts/list-all-source-actions.sh) 
-		ListAllSourceActions
+	*/sh-scripts/list-changed-source-projects.sh) 
+		ListChangedSourceProjects
 	;;
 esac

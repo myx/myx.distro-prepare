@@ -1,9 +1,12 @@
-[ -z "$PKG" ] && echo '$PKG' is not set! >&2 && exit 1
+[ -z "$MMDAPP" ] && echo '$MMDAPP' is not set! >&2 && exit 1
 
 #
 # Runs DistroCommand by compiling it's source code to a temporary folder 
 #
 DistroFromSource(){
+	local OUT="$MMDAPP/output"
+	local PKG="$MMDAPP/source"
+
 	local DIR_OUT="$OUT/cached/myx/myx.distro-prepare/java"
 	local DIR_SRC="$PKG/myx/myx.distro-prepare/java"
 

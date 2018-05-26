@@ -7,17 +7,21 @@ if [ -z "$MMDAPP" ] ; then
 	[ -d "$MMDAPP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
 fi
 
+if [ "`type -t ListAllSourceRepositories`" != "function" ] ; then
 . "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-all-source-repositories.sh"
-. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-source-repository-packages.sh"
+fi
+if [ "`type -t ListSourceRepositoryProjects`" != "function" ] ; then
+. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-source-repository-projects.sh"
+fi
 
-ListAllSourcePackages(){
+ListAllSourceProjects(){
 	for REPO in $( ListAllSourceRepositories ) ; do
-		ListSourceRepositoryPackages "$REPO"
+		ListSourceRepositoryProjects "$REPO"
 	done	
 }
 
 case "$0" in
-	*/sh-scripts/list-all-source-packages.sh) 
-		ListAllSourcePackages
+	*/sh-scripts/list-all-source-projects.sh) 
+		ListAllSourceProjects
 	;;
 esac

@@ -8,16 +8,16 @@ if [ -z "$MMDAPP" ] ; then
 fi
 
 
-ListSourcePackageActions(){
-	local ACT_PATH="$MMDAPP/source/${1#$MMDAPP/source/}/actions"
+ListSourcePackageBuilders(){
+	local ACT_PATH="$MMDAPP/source/${1#$MMDAPP/source/}/make-prepare/builders"
 	[ -d "$ACT_PATH" ] || return 0
-	for LINE in `find "$ACT_PATH" -mindepth 1 -type f | sort` ; do
+	for LINE in `find "$ACT_PATH" -mindepth 1 -type f -name "1???-*.sh" | sort` ; do
 		echo "${LINE#$MMDAPP/source/}"
 	done
 }
 
 case "$0" in
-	*/sh-scripts/list-source-package-actions.sh) 
-		ListSourcePackageActions "$@"
+	*/sh-scripts/list-source-package-builders.sh) 
+		ListSourcePackageBuilders "$@"
 	;;
 esac

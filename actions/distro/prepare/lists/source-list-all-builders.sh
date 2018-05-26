@@ -2,9 +2,9 @@
 
 if [ -z "$MMDAPP" ] ; then
 	set -e
-	export MMDAPP="$( cd $(dirname "$0")/../../../../.. ; pwd )"
+	export MMDAPP="$( cd $(dirname "$0")/../../../../../.. ; pwd )"
 	echo "$0: Working in: $MMDAPP"  >&2
 	[ -d "$MMDAPP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
 fi
 
-"$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-all-source-packages.sh"
+"$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-all-source-builders.sh"

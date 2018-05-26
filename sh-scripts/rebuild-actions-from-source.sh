@@ -7,8 +7,12 @@ if [ -z "$MMDAPP" ] ; then
 	[ -d "$MMDAPP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
 fi
 
+if [ "`type -t ListAllSourceRepositories`" != "function" ] ; then
 . "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-all-source-repositories.sh"
-. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-source-repository-packages.sh"
+fi
+if [ "`type -t ListSourceRepositoryProjects`" != "function" ] ; then
+. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-source-repository-projects.sh"
+fi
 
 
 RebuildActionsFromSource(){
@@ -20,12 +24,12 @@ RebuildActionsFromSource(){
 	echo "Using temporary install directory: $TMP_DIR"
 	
 	for REPO in $( ListAllSourceRepositories ) ; do
-		for PKG in $( ListSourceRepositoryPackages "$REPO" ) ; do
+		for PKG in $( ListSourceRepositoryProjects "$REPO" ) ; do
 			for ACTION in $( [ -d "$MMDAPP/source/$PKG/actions" ] && find "$MMDAPP/source/$PKG/actions" -mindepth 1 -type f -name *.sh ) ; do
 				local PKG="${PKG#$MMDAPP/source/}"
 				local ACTION="${ACTION#$MMDAPP/source/}"
 				local TARGET="$TMP_DIR/${ACTION#$PKG/actions/}"
-				echo "Processing: ${ACTION#source/} -> ${TARGET#$TMP_DIR/}" >&2
+				printf "Processing: ${TARGET#$TMP_DIR/} \n \t \t \t <= ${ACTION#source/}\n" >&2
 				mkdir -p "`dirname "$TARGET"`"
 				
 				## source code of script being created:
@@ -36,7 +40,7 @@ RebuildActionsFromSource(){
 		done	
 	done	
 	
-	rsync -rltoDCv `[ "--no-delete" = "$1" ] || echo "--delete"` --chmod=ug+rw --omit-dir-times "$TMP_DIR/" "$MMDAPP/actions"
+	rsync -rltoDC `[ "--no-delete" = "$1" ] || echo "--delete"` --chmod=ug+rw --omit-dir-times "$TMP_DIR/" "$MMDAPP/actions"
 	rm -rf "$TMP_DIR"
 }
 

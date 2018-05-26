@@ -8,21 +8,21 @@ if [ -z "$MMDAPP" ] ; then
 fi
 
 . "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-public-folders.sh"
-. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/check-echo-source-package.sh"
+. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/check-echo-source-project.sh"
 
-ListSourceRepositoryPackages(){
+ListSourceRepositoryProjects(){
 	local REPO_KEY="${1#$MMDAPP/source/}"
 	[ -z "$REPO_KEY" ] && echo '$REPO_KEY' is not set! >&2 && exit 1
 	
 	for CHK_PATH in `ListPublicFolders "$MMDAPP/source/$REPO_KEY"` ; do
-		for LINE in `CheckEchoSourcePackage "$CHK_PATH"` ; do
+		for LINE in `CheckEchoSourceProject "$CHK_PATH"` ; do
 			echo "${LINE#$MMDAPP/source/}"
 		done
 	done	
 }
 
 case "$0" in
-	*/sh-scripts/list-source-repository-packages.sh) 
-		ListSourceRepositoryPackages "$@"
+	*/sh-scripts/list-source-repository-projects.sh) 
+		ListSourceRepositoryProjects "$@"
 	;;
 esac

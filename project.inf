@@ -4,5 +4,5 @@ Requires: java
 Augments: developer-sdk:recommended
 Suggests: 
 Declares: 
-Provides: 
+Provides: myx/myx.distro-prepare
 Replaces: 

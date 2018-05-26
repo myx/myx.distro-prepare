@@ -9,7 +9,7 @@ fi
 
 . "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-public-folders.sh"
 
-CheckEchoSourcePackage(){
+CheckEchoSourceProject(){
 	local PKG_PATH="$1"
 	[ -z "$PKG_PATH" ] && echo '$PKG_PATH' is not set! >&2 && exit 1
 	[ ! -d "$PKG_PATH" ] && return 0
@@ -22,13 +22,13 @@ CheckEchoSourcePackage(){
 	
 	if [ -z "$NOT_DEEP" ] ; then
 		for CHK_PATH in `ListPublicFolders "$PKG_PATH"` ; do
-			CheckEchoSourcePackage "$CHK_PATH" "TRUE"
+			CheckEchoSourceProject "$CHK_PATH" "TRUE"
 		done	
 	fi
 }
 
 case "$0" in
-	*/sh-scripts/check-echo-source-package.sh) 
-		CheckEchoSourcePackage "$@"
+	*/sh-scripts/check-echo-source-project.sh) 
+		CheckEchoSourceProject "$@"
 	;;
 esac

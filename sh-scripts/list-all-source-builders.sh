@@ -10,19 +10,25 @@ fi
 if [ "`type -t ListAllSourceProjects`" != "function" ] ; then
 . "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-all-source-projects.sh"
 fi
-if [ "`type -t ListSourcePackageActions`" != "function" ] ; then
-. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-source-package-actions.sh"
+if [ "`type -t ListSourcePackageBuilders`" != "function" ] ; then
+. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-source-package-builders.sh"
 fi
 
-
-ListAllSourceActions(){
+ListAllSourceBuildersRaw(){
 	for PKG in $( ListAllSourceProjects ) ; do
-		ListSourcePackageActions "$PKG"
-	done	
+		ListSourcePackageBuilders "$PKG"
+	done
+}
+
+ListAllSourceBuilders(){
+	ListAllSourceBuildersRaw |\
+				    awk -v FS=/ -v OFS=/ '{ print $NF,$0 }' |\
+				    sort -n -t / |\
+				    cut -f2- -d/
 }
 
 case "$0" in
-	*/sh-scripts/list-all-source-actions.sh) 
-		ListAllSourceActions
+	*/sh-scripts/list-all-source-builders.sh) 
+		ListAllSourceBuilders
 	;;
 esac
