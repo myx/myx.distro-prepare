@@ -25,6 +25,9 @@ fi
 if [ -z "$DISTRO_PATH" ] ; then
 	export DISTRO_PATH="$MMDAPP/distro"
 fi
+if [ -z "$EXPORT_PATH" ] ; then
+	export EXPORT_PATH="$MMDAPP/export"
+fi
 if [ -z "$OUTPUT_PATH" ] ; then
 	export OUTPUT_PATH="$MMDAPP/output"
 fi

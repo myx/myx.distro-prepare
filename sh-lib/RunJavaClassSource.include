@@ -1,4 +1,4 @@
-. "$PKG/myx/myx.distro-prepare/sh-lib/lib-paths.include"
+[ -z "$MMDAPP" ] && echo '$MMDAPP' is not set! >&2 && exit 1
 
 CompileJavaClassTo(){
 	SRC_NAME=$1; shift
@@ -6,7 +6,7 @@ CompileJavaClassTo(){
 	CLS_PATH=$1; shift
 	CLS_NAME=$1; shift
 	
-	SRC_PATH="$PKG/$SRC_NAME/java"
+	SRC_PATH="$MMDAPP/source/$SRC_NAME/java"
 	
 	# echo "Running $CLS_NAME from $SRC_NAME at $CLS_PATH" >&2
 	
@@ -19,7 +19,7 @@ RunJavaClassSource(){
 	SRC_NAME=$1; shift
 	CLS_NAME=$1; shift
 	
-	DST_NAME="$OUTPUT_JAVA/$SRC_NAME/java"
+	DST_NAME="$MMDAPP/output/cached/$SRC_NAME/java"
 	CLS_PATH="$DST_NAME:"
 
 	# echo "  >  Running Java Class (Clean): $CLS_NAME"  >&2

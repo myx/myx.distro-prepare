@@ -1,17 +1,21 @@
-. "$PKG/myx/myx.distro-prepare/sh-lib/lib-paths.include"
-
+[ -z "$MMDAPP" ] && echo '$MMDAPP' is not set! >&2 && exit 1
 
 CompileProjectJava(){
 	REPO_NAME=$1; shift
 	PROJ_NAME=$1; shift
-	REPO_JAVA="$OUTPUT_JAVA/$REPO_NAME"
+	REPO_JAVA="$MMDAPP/output/cached/$REPO_NAME"
 	PROJ_BASE="$REPO_JAVA/$PROJ_NAME"
 
 	echo "Compiling project $PROJ_NAME" >&2
 	
 	( \
 		. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassSource.include" ;
-		RunJavaClassSource myx/myx.distro-prepare ru.myx.distro.prepare.MakeCompileSources "$PKG" "$OUTPUT_ROOT" --project "$PROJ_NAME" \
+		RunJavaClassSource \
+			myx/myx.distro-prepare \
+			ru.myx.distro.prepare.MakeCompileSources \
+			"$MMDAPP/source" \
+			"$MMDAPP/output" \
+			--project "$PROJ_NAME" \
 	)
 
 	return 0
@@ -23,6 +27,12 @@ CompileProjectJava(){
 	
 	( \
 		. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassSource.include" ;
-		RunJavaClassSource myx/myx.distro-prepare ru.myx.distro.prepare.MakeCompileSources "$PKG" "$OUTPUT_ROOT" --from-output --project "$PROJ_NAME" \
+		RunJavaClassSource \
+			myx/myx.distro-prepare \
+			ru.myx.distro.prepare.MakeCompileSources \
+			"$MMDAPP/source" \
+			"$MMDAPP/output" \
+			--from-output \
+			--project "$PROJ_NAME" \
 	)
 }

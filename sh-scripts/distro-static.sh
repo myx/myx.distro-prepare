@@ -8,6 +8,10 @@ if [ -z "$MMDAPP" ] ; then
 fi
 
 
+. "$MMDAPP/source/myx/myx.distro-prepare/sh-lib/DistroStatic.include"
+
+DistroStatic "$@"
+
 
 
 # Examples:
@@ -50,7 +54,3 @@ fi
 # ./distro/distro-static.sh --exec-sync --source /tmp/aaa/src1 --target /tmp/aaa/tgt --do-sync-continue-always --print-updates --done --print-projects
 
 # ./distro/distro-static.sh -v --clean-output ../output -p ""
-
-. "$MMDAPP/source/myx/myx.distro-prepare/sh-lib/DistroStatic.include"
-
-DistroStatic "$@"

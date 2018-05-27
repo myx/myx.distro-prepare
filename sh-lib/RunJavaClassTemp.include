@@ -1,3 +1,5 @@
+[ -z "$MMDAPP" ] && echo '$MMDAPP' is not set! >&2 && exit 1
+
 RunJavaClassTemp(){
 	set -e
 	

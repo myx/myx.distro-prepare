@@ -13,7 +13,7 @@ DistroFromSource \
 	--source-root "$MMDAPP/source" \
 	--output-root "$MMDAPP/output" \
 	"$@" \
-	 --print ''
+	--print ''
 
 
 exit 0

@@ -1,11 +1,8 @@
 [ -z "$MMDAPP" ] && echo '$MMDAPP' is not set! >&2 && exit 1
 
-
 #
 # Runs DistroCommand by loading it's compiled code from a distro image folder 
 #
 DistroFromImage(){
-	local OUT="$MMDAPP/output"
-
-	java -cp "$OUT/cached/myx/myx.distro-prepare/java" ru.myx.distro.DistroImageCommand "$@"
+	java -cp "$MMDAPP/output/cached/myx/myx.distro-prepare/java" ru.myx.distro.DistroImageCommand "$@"
 }

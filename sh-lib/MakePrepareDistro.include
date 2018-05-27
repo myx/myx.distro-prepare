@@ -1,14 +1,13 @@
-. "$PKG/myx/myx.distro-prepare/sh-lib/lib-paths.include"
+[ -z "$MMDAPP" ] && echo '$MMDAPP' is not set! >&2 && exit 1
 
-echo "Initializing Source Build" >&2
-echo "  `DumpDistroPaths`" >&2
+echo "Initializing Source Build, Working in: $MMDAPP" >&2
 
 MakePrepareDistro(){
 
-	. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassClean.include" ;
+	. "$MMDAPP/source/myx/myx.distro-prepare/sh-lib/RunJavaClassClean.include" ;
 	RunJavaClassClean myx/myx.distro-prepare ru.myx.distro.DistroStaticCommand \
-			--source-root "$PKG" \
-			--output-root "$OUTPUT_ROOT" \
+			--source-root "$MMDAPP/source" \
+			--output-root "$MMDAPP/output" \
 			--import-from-source --prepare-build --print-sequence
 	
 
@@ -16,16 +15,16 @@ MakePrepareDistro(){
 	
 	
 
-	. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassSource.include" ;
+	. "$MMDAPP/source/myx/myx.distro-prepare/sh-lib/RunJavaClassSource.include" ;
 	RunJavaClassSource myx/myx.distro-prepare ru.myx.distro.DistroStaticCommand \
-			--source-root "$PKG" \
-			--output-root "$OUTPUT_ROOT" \
+			--source-root "$MMDAPP/source" \
+			--output-root "$MMDAPP/output" \
 			--import-from-distro --print-repositories -p "" --print-projects --compile-all
 }
 
 CleanOutputDirectory(){
 
 	echo "Cleaning Output directory" >&2
-	rm -rf "$OUTPUT_ROOT"
+	rm -rf "$MMDAPP/output"
 }
 

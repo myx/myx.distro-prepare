@@ -4,11 +4,8 @@
 # Runs DistroCommand by compiling it's source code to a temporary folder 
 #
 DistroFromSource(){
-	local OUT="$MMDAPP/output"
-	local PKG="$MMDAPP/source"
-
-	local DIR_OUT="$OUT/cached/myx/myx.distro-prepare/java"
-	local DIR_SRC="$PKG/myx/myx.distro-prepare/java"
+	local DIR_OUT="$MMDAPP/output/cached/myx/myx.distro-prepare/java"
+	local DIR_SRC="$MMDAPP/source/myx/myx.distro-prepare/java"
 
 	local FIL_OUT="$DIR_OUT/ru/myx/distro/DistroSourceCommand.class"
 	local FIL_CPL="$DIR_SRC/ru/myx/distro/DistroSourceCommand.class"
@@ -46,7 +43,7 @@ DistroFromSource(){
 		java -cp "$DIR_SRC" ru.myx.distro.DistroSourceCommand "$@"
 
 	test -z "$USE_SRC" || (
-		. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassClean.include" ;
+		. "$MMDAPP/source/myx/myx.distro-prepare/sh-lib/RunJavaClassClean.include" ;
 		RunJavaClassClean \
 			"myx/myx.distro-prepare" \
 			ru.myx.distro.DistroSourceCommand \
@@ -56,9 +53,9 @@ DistroFromSource(){
 	return 0
 	
 	test -z "$TMP_SRC" || (
-		. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassTemp.include" ;
+		. "$MMDAPP/source/myx/myx.distro-prepare/sh-lib/RunJavaClassTemp.include" ;
 		RunJavaClassTemp \
-			"$PKG/myx/myx.distro-prepare/java" \
+			"$MMDAPP/source/myx/myx.distro-prepare/java" \
 			ru.myx.distro.DistroSourceCommand \
 			"$@" \
 	)
