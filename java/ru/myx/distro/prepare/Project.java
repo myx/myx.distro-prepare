@@ -33,7 +33,8 @@ public class Project {
 	return true;
     }
 
-    static Project staticLoadFromLocalIndex(final Repository repo, final Path projectRoot) throws Exception {
+    static Project staticLoadFromLocalIndex(final Repository repo, final String projectName, final Path projectRoot)
+	    throws Exception {
 
 	final Path infPath = projectRoot.resolve("project.inf");
 	if (!Files.isRegularFile(infPath)) {
@@ -45,10 +46,11 @@ public class Project {
 	    info.load(in);
 	}
 
-	return new Project(projectRoot.getFileName().toString(), info, repo);
+	return new Project(projectName, info, repo);
     }
 
-    static Project staticLoadFromLocalSource(final Repository repo, final Path projectPath) throws Exception {
+    static Project staticLoadFromLocalSource(final Repository repo, final String packageName, final Path projectPath)
+	    throws Exception {
 	final String folderName = projectPath.getFileName().toString();
 	if (folderName.length() < 2 || folderName.charAt(0) == '.') {
 	    // not a user-folder, hidden
@@ -69,7 +71,12 @@ public class Project {
 	    System.err.println(Project.class.getSimpleName() + ": skipped, no 'Name' in project.inf");
 	    return null;
 	}
-	final Project project = new Project(name, info, repo);
+	if (!name.equals(packageName) && !packageName.endsWith('/' + name)) {
+	    System.err
+		    .println(Project.class.getSimpleName() + ": packageName mismatch: " + packageName + " != " + name);
+	    return null;
+	}
+	final Project project = new Project(packageName, info, repo);
 	project.projectSourceRoot = projectPath;
 	return project;
     }
@@ -529,6 +536,14 @@ public class Project {
 	    if (Files.isDirectory(source)) {
 		this.lstProvides.add(new OptionListItem("project-data", "data.tbz"));
 		this.lstContains.add("data.tbz");
+		console.outProgress('l');
+	    }
+	}
+	{
+	    final Path source = projectRoot.resolve("docs");
+	    if (Files.isDirectory(source)) {
+		this.lstProvides.add(new OptionListItem("project-docs", "docs.tbz"));
+		this.lstContains.add("docs.tbz");
 		console.outProgress('l');
 	    }
 	}

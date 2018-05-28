@@ -27,6 +27,9 @@ SyncCacheFromSourceRepository(){
 	if [ -z "$REPO" ] ; then
 		echo "SyncCacheFromSourceRepository: 'REPO' argument is required!" >&2 ; exit 1
 	fi
+	
+	mkdir -p "$MMDAPP/cached/source/$REPO"
+	rsync -a -i --delete "$MMDAPP/source/$REPO/repository.inf" "$MMDAPP/cached/source/$REPO/repository.inf"
 
 	if [ -z "$PACKAGES_ALL" ] ; then
 		for PKG in $PACKAGES_ALL ; do

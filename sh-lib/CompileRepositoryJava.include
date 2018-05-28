@@ -8,7 +8,7 @@ CompileRepositoryJava(){
 
 
 	( \
-		. "$PKG/myx/myx.distro-prepare/sh-lib/RunJavaClassSource.include" ;
+		. "$MMDAPP/source/myx/myx.distro-prepare/sh-lib/RunJavaClassSource.include" ;
 		RunJavaClassSource \
 			myx/myx.distro-prepare \
 			ru.myx.distro.prepare.MakeCompileSources \

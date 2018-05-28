@@ -49,13 +49,13 @@ RebuildDistroFromSourceRaw(){
 	done
 }
 
-RebuildDistroFromSource(){
+BuildDistroFromSource(){
 	Async "prepare" RebuildDistroFromSourceRaw "$@"
 	wait
 }
 
 case "$0" in
-	*/sh-scripts/rebuild-distro-from-source.sh) 
-		RebuildDistroFromSource "$@"
+	*/sh-scripts/build-distro-from-source.sh) 
+		BuildDistroFromSource "$@"
 	;;
 esac

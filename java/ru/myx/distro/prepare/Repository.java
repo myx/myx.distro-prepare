@@ -332,7 +332,7 @@ public class Repository {
 	{
 	    for (final String projectName : Files.readAllLines(repositoryRoot.resolve("project-names.txt"))) {
 		final Path projectRoot = repositoryRoot.resolve(projectName);
-		final Project project = Project.staticLoadFromLocalIndex(this, projectRoot);
+		final Project project = Project.staticLoadFromLocalIndex(this, projectName, projectRoot);
 		if (project != null) {
 		    project.loadFromLocalIndex(this, projectRoot);
 		}
@@ -356,13 +356,23 @@ public class Repository {
     public void loadFromLocalSource(final ConsoleOutput console, final Distro repositories, final Path repositoryRoot)
 	    throws Exception {
 
-	try (final DirectoryStream<Path> projects = Files.newDirectoryStream(repositoryRoot)) {
+	this.loadFromLocalSource(console, repositories, repositoryRoot, repositoryRoot);
+    }
+
+    public void loadFromLocalSource(final ConsoleOutput console, final Distro repositories, final Path repositoryRoot,
+	    final Path currentRoot) throws Exception {
+
+	try (final DirectoryStream<Path> projects = Files.newDirectoryStream(currentRoot)) {
 
 	    for (final Path projectRoot : projects) {
 
 		if (Project.checkIfProject(projectRoot)) {
 
-		    final Project project = Project.staticLoadFromLocalSource(this, projectRoot);
+		    final Project project = Project.staticLoadFromLocalSource(//
+			    this, //
+			    repositoryRoot.relativize(projectRoot).toString(), //
+			    projectRoot//
+		    );
 		    if (project != null) {
 			project.loadFromLocalSource(console, this, projectRoot);
 			console.outProgress('p');
@@ -380,7 +390,7 @@ public class Repository {
 		    continue;
 		}
 
-		this.loadFromLocalSource(console, repositories, projectRoot);
+		this.loadFromLocalSource(console, repositories, repositoryRoot, projectRoot);
 	    }
 	}
     }

@@ -1,12 +1,12 @@
 [ -z "$MMDAPP" ] && echo '$MMDAPP' is not set! >&2 && exit 1
 
 CompileJavaClassTo(){
-	SRC_NAME=$1; shift
-	DST_PATH=$1; shift
-	CLS_PATH=$1; shift
-	CLS_NAME=$1; shift
+	local SRC_NAME=$1; shift
+	local DST_PATH=$1; shift
+	local CLS_PATH=$1; shift
+	local CLS_NAME=$1; shift
 	
-	SRC_PATH="$MMDAPP/source/$SRC_NAME/java"
+	local SRC_PATH="$MMDAPP/source/$SRC_NAME/java"
 	
 	# echo "Running $CLS_NAME from $SRC_NAME at $CLS_PATH" >&2
 	
@@ -16,11 +16,11 @@ CompileJavaClassTo(){
 RunJavaClassSource(){
 	set -e
 	
-	SRC_NAME=$1; shift
-	CLS_NAME=$1; shift
+	local SRC_NAME=$1; shift
+	local CLS_NAME=$1; shift
 	
-	DST_NAME="$MMDAPP/output/cached/$SRC_NAME/java"
-	CLS_PATH="$DST_NAME:"
+	local DST_NAME="$MMDAPP/output/cached/$SRC_NAME/java"
+	local CLS_PATH="$DST_NAME:"
 
 	# echo "  >  Running Java Class (Clean): $CLS_NAME"  >&2
 

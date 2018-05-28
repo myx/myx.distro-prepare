@@ -16,7 +16,7 @@ fi
 
 
 RebuildActionsFromSource(){
-	export TMP_DIR="$(mktemp -d -t "rebuild-actions-from-source-")"
+	local TMP_DIR="$(mktemp -d -t "rebuild-actions-from-source-")"
 	if [ $? -ne 0 ]; then
 		echo "Can't make temporary install directory $TMP_DIR, exiting..."
 		exit 1
@@ -25,7 +25,7 @@ RebuildActionsFromSource(){
 	
 	for REPO in $( ListAllSourceRepositories ) ; do
 		for PKG in $( ListSourceRepositoryProjects "$REPO" ) ; do
-			for ACTION in $( [ -d "$MMDAPP/source/$PKG/actions" ] && find "$MMDAPP/source/$PKG/actions" -mindepth 1 -type f -name *.sh ) ; do
+			for ACTION in $( [ -d "$MMDAPP/source/$PKG/actions" ] && find "$MMDAPP/source/$PKG/actions" -mindepth 1 -type f -name '*.sh' ) ; do
 				local PKG="${PKG#$MMDAPP/source/}"
 				local ACTION="${ACTION#$MMDAPP/source/}"
 				local TARGET="$TMP_DIR/${ACTION#$PKG/actions/}"
@@ -40,7 +40,7 @@ RebuildActionsFromSource(){
 		done	
 	done	
 	
-	rsync -rltoDC `[ "--no-delete" = "$1" ] || echo "--delete"` --chmod=ug+rw --omit-dir-times "$TMP_DIR/" "$MMDAPP/actions"
+	rsync -rltoDC `[ "--no-delete" == "$1" ] || echo "--delete"` --chmod=ug+rw --omit-dir-times "$TMP_DIR/" "$MMDAPP/actions"
 	rm -rf "$TMP_DIR"
 }
 

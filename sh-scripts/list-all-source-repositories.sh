@@ -15,6 +15,7 @@ ListAllSourceRepositories(){
 
 case "$0" in
 	*/sh-scripts/list-all-source-repositories.sh) 
+		# "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/distro-source.sh" --import-from-source --print-repositories --print ""
 		ListAllSourceRepositories "$@"
 	;;
 esac

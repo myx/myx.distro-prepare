@@ -22,9 +22,3 @@ MakePrepareDistro(){
 			--import-from-distro --print-repositories -p "" --print-projects --compile-all
 }
 
-CleanOutputDirectory(){
-
-	echo "Cleaning Output directory" >&2
-	rm -rf "$MMDAPP/output"
-}
-

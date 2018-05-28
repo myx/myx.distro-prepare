@@ -23,13 +23,16 @@ SyncCacheFromSourceProject(){
 	fi
 	
 	local SRC="$MMDAPP/source/$PKG"
+
 	local DST="$MMDAPP/cached/source/$PKG"
-	local CHG="$MMDAPP/cached/changed/$PKG"
 	mkdir -p "$DST"
+
+	local CHG="$MMDAPP/cached/changed/$PKG"
 	if [ -f "$CHG" ] ; then
 		echo "already marked as changed." 
 	fi
-	if local ROUTPUT="`rsync -a -i --delete --exclude '.git' "$SRC/" "$DST"`" ; then
+	
+	if local ROUTPUT="`rsync -a -i --delete --exclude '.*' --exclude 'CVS' "$SRC/" "$DST"`" ; then
 		if [ -z "$ROUTPUT" ] ; then
 			echo "not changed on this run."
 		else

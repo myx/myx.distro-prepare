@@ -22,6 +22,7 @@ ListAllSourceProjects(){
 
 case "$0" in
 	*/sh-scripts/list-all-source-projects.sh) 
+		# "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/distro-source.sh" --import-from-source --print-projects --print ""
 		ListAllSourceProjects
 	;;
 esac
