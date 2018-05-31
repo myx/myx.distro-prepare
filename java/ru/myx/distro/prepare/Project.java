@@ -157,11 +157,11 @@ public class Project {
 	    final Path projectOutput, final List<String> compileJava) throws Exception {
 	this.buildPrepareDistroIndex(console, repository, projectOutput, false);
 
-	{
-	    Files.write(//
-		    projectOutput.resolve("project-classpath.txt"), //
-		    this.buildPrepareCompileIndexMakeClasspath(new ClasspathBuilder()));
-	}
+	Utils.save(//
+		console, //
+		projectOutput.resolve("project-classpath.txt"), //
+		this.buildPrepareCompileIndexMakeClasspath(new ClasspathBuilder())//
+	);
 
 	if (this.projectSourceRoot == null) {
 	    return;

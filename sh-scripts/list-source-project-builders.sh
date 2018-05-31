@@ -8,7 +8,7 @@ if [ -z "$MMDAPP" ] ; then
 fi
 
 
-ListSourcePackageBuilders(){
+ListSourceProjectBuilders(){
 	local ACT_PATH="$MMDAPP/source/${1#$MMDAPP/source/}/make-prepare/builders"
 	[ -d "$ACT_PATH" ] || return 0
 	for LINE in `find "$ACT_PATH" -mindepth 1 -type f -name "1???-*.sh" | sort` ; do
@@ -17,7 +17,7 @@ ListSourcePackageBuilders(){
 }
 
 case "$0" in
-	*/sh-scripts/list-source-package-builders.sh) 
-		ListSourcePackageBuilders "$@"
+	*/sh-scripts/list-source-project-builders.sh) 
+		ListSourceProjectBuilders "$@"
 	;;
 esac

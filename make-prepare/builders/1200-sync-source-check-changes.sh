@@ -20,9 +20,12 @@ PrepareSyncSourceCheckChanges(){
 			--source-root "$MMDAPP/cached/source" \
 			--output-root "$MMDAPP/output" \
 			--import-from-source --select-all-from-source \
-			--prepare-build-roots --prepare-build-distro-index --prepare-build-compile-index \
+			--prepare-build \
 			--print '' \
 	)
 }
 
 PrepareSyncSourceCheckChanges
+
+#			--prepare-build-roots --prepare-build-compile-index --prepare-build-distro-index \
+#			--prepare-build-roots --prepare-build-compile-index --prepare-build-distro-index --prepare-build-fetch-missing \

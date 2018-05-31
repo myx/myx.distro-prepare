@@ -17,3 +17,10 @@ CompileRepositoryJava(){
 			--repository "$REPO_NAME" \
 	)
 }
+
+case "$0" in
+	*/sh-scripts/compile-repository-java.sh) 
+		# "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/distro-source.sh" --clean-output "$MMDAPP/output" --print ""
+		CompileRepositoryJava "$@"
+	;;
+esac

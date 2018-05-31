@@ -8,7 +8,7 @@ if [ -z "$MMDAPP" ] ; then
 fi
 
 
-ListSourcePackageActions(){
+ListSourceProjectActions(){
 	local ACT_PATH="$MMDAPP/source/${1#$MMDAPP/source/}/actions"
 	[ -d "$ACT_PATH" ] || return 0
 	for LINE in `find "$ACT_PATH" -mindepth 1 -type f | sort` ; do
@@ -17,7 +17,7 @@ ListSourcePackageActions(){
 }
 
 case "$0" in
-	*/sh-scripts/list-source-package-actions.sh) 
-		ListSourcePackageActions "$@"
+	*/sh-scripts/list-source-project-actions.sh) 
+		ListSourceProjectActions "$@"
 	;;
 esac

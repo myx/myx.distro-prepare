@@ -146,8 +146,8 @@ public final class Distro {
     public boolean buildPrepareIndexFromSource(final Path outputRoot, final Path sourceRoot) throws Exception {
 	final DistroBuildSourceContext ctx = new DistroBuildSourceContext(outputRoot, sourceRoot);
 	{
-	    for (final Repository repo : this.sequenceRepositories) {
-		repo.buildSource(this, ctx);
+	    for (final Repository repository : this.sequenceRepositories) {
+		repository.buildSource(this, ctx);
 	    }
 	}
 	ctx.writeOut();

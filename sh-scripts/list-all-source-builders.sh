@@ -10,13 +10,13 @@ fi
 if [ "`type -t ListAllSourceProjects`" != "function" ] ; then
 . "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-all-source-projects.sh"
 fi
-if [ "`type -t ListSourcePackageBuilders`" != "function" ] ; then
-. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-source-package-builders.sh"
+if [ "`type -t ListSourceProjectBuilders`" != "function" ] ; then
+. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-source-project-builders.sh"
 fi
 
 ListAllSourceBuildersRaw(){
 	for PKG in $( ListAllSourceProjects ) ; do
-		ListSourcePackageBuilders "$PKG"
+		ListSourceProjectBuilders "$PKG"
 	done
 }
 

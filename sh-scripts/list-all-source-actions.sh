@@ -10,14 +10,14 @@ fi
 if [ "`type -t ListAllSourceProjects`" != "function" ] ; then
 . "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-all-source-projects.sh"
 fi
-if [ "`type -t ListSourcePackageActions`" != "function" ] ; then
-. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-source-package-actions.sh"
+if [ "`type -t ListSourceProjectActions`" != "function" ] ; then
+. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-source-project-actions.sh"
 fi
 
 
 ListAllSourceActions(){
 	for PKG in $( ListAllSourceProjects ) ; do
-		ListSourcePackageActions "$PKG"
+		ListSourceProjectActions "$PKG"
 	done	
 }
 

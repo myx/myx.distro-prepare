@@ -89,11 +89,7 @@ public class DistroSourceCommand extends AbstractDistroCommand {
 	    }, "--prepare-build-compile-index");
 
 	    AbstractCommand.registerOperation(operations, context -> {
-		context.repositories.buildPrepareDistroIndex(//
-			context.console, //
-			context.outputRoot.resolve("distro").normalize(), //
-			true//
-		);
+		context.doPrepareBuildDistroIndex();
 		return true;
 	    }, "--prepare-build-distro-index");
 
@@ -215,10 +211,18 @@ public class DistroSourceCommand extends AbstractDistroCommand {
 	this.repositories.buildCalculateSequence();
 
 	this.doPrepareCheckBuildRoots();
-
+	this.doPrepareBuildDistroIndex();
 	this.doPrepateBuildCachedIndex();
 	this.doPrepateBuildFetchMissing();
 	this.doPrepateBuildCompileJava();
+    }
+
+    private void doPrepareBuildDistroIndex() throws Exception {
+	this.repositories.buildPrepareDistroIndex(//
+		this.console, //
+		this.outputRoot.resolve("distro").normalize(), //
+		true//
+	);
     }
 
     public void doPrepareCheckBuildRoots() throws IOException {
@@ -256,7 +260,8 @@ public class DistroSourceCommand extends AbstractDistroCommand {
     public void doPrepateBuildCompileJava() throws Exception {
 	this.console.outDebug("check compile updated or missing java class files");
 
-	final Set<Project> providers = this.repositories.getProvides(new OptionListItem("", "build.java-jar"));
+	final Set<Project> providers = this.repositories
+		.getProvides(new OptionListItem("build-prepare", "compile-java"));
 
 	this.console.outWarn("SKIPPED, providers: " + providers);
     }
