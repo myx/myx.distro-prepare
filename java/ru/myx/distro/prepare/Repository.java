@@ -4,17 +4,12 @@ import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.stream.Stream;
 
-import ru.myx.distro.ClasspathBuilder;
 import ru.myx.distro.Utils;
 
 public class Repository {
@@ -27,7 +22,7 @@ public class Repository {
 	return true;
     }
 
-    public static Repository staticLoadFromLocalIndex(final Distro repos, final Path repositoryRoot) throws Exception {
+    public static Repository staticLoadFromLocalIndex(final Distro distro, final Path repositoryRoot) throws Exception {
 	final Path infPath = repositoryRoot.resolve("repository.inf");
 	if (!Files.isRegularFile(infPath)) {
 	    // doesn't have a manifest
@@ -39,10 +34,11 @@ public class Repository {
 	}
 	final String repositoryName = repositoryRoot.getFileName().toString();
 	final String fetch = info.getProperty("Fetch", "").trim();
-	return new Repository(repositoryName, fetch.length() == 0 ? null : fetch, repos);
+	return new Repository(repositoryName, fetch.length() == 0 ? null : fetch, distro);
     }
 
-    public static Repository staticLoadFromLocalSource(final Distro repos, final Path repositoryRoot) throws Exception {
+    public static Repository staticLoadFromLocalSource(final Distro distro, final Path repositoryRoot)
+	    throws Exception {
 	final String repositoryName = repositoryRoot.getFileName().toString();
 	final Path infPath = repositoryRoot.resolve("repository.inf");
 	if (!Files.isRegularFile(infPath)) {
@@ -66,7 +62,7 @@ public class Repository {
 	    return null;
 	}
 	final String fetch = info.getProperty("Fetch", "").trim();
-	return new Repository(repositoryName, fetch.length() == 0 ? null : fetch, repos);
+	return new Repository(repositoryName, fetch.length() == 0 ? null : fetch, distro);
     }
 
     private final Map<String, Project> byName = new HashMap<>();
@@ -77,19 +73,22 @@ public class Repository {
 
     public final String name;
 
-    private final List<Project> sequence = new ArrayList<>();
+    public final Distro distro;
 
-    public Repository(final String name, final String fetch, final Distro repositories) {
+    public Repository(final String name, final String fetch, final Distro distro) {
 	this.name = name;
 	this.fetch = fetch;
-	if (repositories != null) {
-	    repositories.addKnown(this);
+	this.distro = distro;
+	if (distro != null) {
+	    distro.addKnown(this);
 	}
     }
 
-    boolean addKnown(final Project proj) {
-	this.byName.put(proj.getName(), proj);
-	this.addProvides(proj, new OptionListItem(proj.getName()));
+    boolean addKnown(final Project project) {
+	this.byName.put(project.getName(), project);
+	this.byName.put(project.repo.name + '/' + project.getName(), project);
+	this.addProvides(project, new OptionListItem(project.getName()));
+	this.addProvides(project, new OptionListItem(project.repo.name + '/' + project.getName()));
 	return true;
     }
 
@@ -102,43 +101,8 @@ public class Repository {
 	set.add(project);
     }
 
-    boolean addSequence(final Project proj) {
-	this.sequence.add(proj);
-	return true;
-    }
-
-    public void buildCalculateSequence(final Distro repositories, final Map<String, Project> checked) {
-	this.sequence.clear();
-	for (final Project project : this.byName.values()) {
-	    project.buildCalculateSequence(this, repositories, checked);
-	}
-
-    }
-
-    public void buildPrepareCompileIndex(final ConsoleOutput console, final Distro repositories,
-	    final Path repositoryOutput, final List<String> compileJava) throws Exception {
-	this.buildPrepareDistroIndex(console, repositories, repositoryOutput, false);
-
-	for (final Project project : this.sequence) {
-	    project.buildPrepareCompileIndex(console, this, repositoryOutput.resolve(project.name), compileJava);
-	}
-
-	{
-	    Files.write(//
-		    repositoryOutput.resolve("repository-classpath.txt"), //
-		    this.buildPrepareCompileIndexMakeClasspath(new ClasspathBuilder()));
-	}
-    }
-
-    public ClasspathBuilder buildPrepareCompileIndexMakeClasspath(final ClasspathBuilder list) {
-	for (final Project project : this.sequence) {
-	    project.buildPrepareCompileIndexMakeClasspath(list);
-	}
-	return list;
-    }
-
     public void buildPrepareDistroIndex(final ConsoleOutput console, final Distro repositories,
-	    final Path repositoryOutput, final boolean deep) throws Exception {
+	    final Path repositoryOutput) throws Exception {
 	Files.createDirectories(repositoryOutput);
 	if (!Files.isDirectory(repositoryOutput)) {
 	    throw new IllegalStateException("repositoryOutput is not a folder, " + repositoryOutput);
@@ -158,11 +122,9 @@ public class Repository {
 	}
 
 	{
-	    final Stream<String> projectNames = this.sequence.stream().map(Project::projectName);
-
 	    Utils.save(//
 		    console, repositoryOutput.resolve("project-names.txt"), //
-		    projectNames //
+		    this.byName.keySet().stream().sorted() //
 	    );
 	}
 
@@ -175,7 +137,7 @@ public class Repository {
 	    }
 	    {
 		final StringBuilder builder = new StringBuilder(256);
-		for (final Project project : this.sequence) {
+		for (final Project project : this.byName.values()) {
 		    builder.append(project.repo.name).append('/').append(project.name).append(' ');
 		    project.buildPrepareDistroIndexFillProjectInfo(info);
 		}
@@ -200,53 +162,6 @@ public class Repository {
 		    true//
 	    );
 	}
-
-	if (deep) {
-	    for (final Project project : this.sequence) {
-		project.buildPrepareDistroIndex(console, this, repositoryOutput.resolve(project.name), true);
-	    }
-	}
-    }
-
-    public boolean buildSource(final Distro repos, final DistroBuildSourceContext ctx) throws Exception {
-
-	final RepositoryBuildSourceContext repositoryCtx = new RepositoryBuildSourceContext(this, ctx);
-
-	final Path source = repositoryCtx.source;
-	if (!Files.isDirectory(source)) {
-	    throw new IllegalStateException("source is not a folder, " + source);
-	}
-
-	final Path distro = repositoryCtx.distro;
-	Files.createDirectories(distro);
-	if (!Files.isDirectory(distro)) {
-	    throw new IllegalStateException("distro is not a folder, " + distro);
-	}
-
-	final Path cached = repositoryCtx.cached;
-	Files.createDirectories(cached);
-	if (!Files.isDirectory(cached)) {
-	    throw new IllegalStateException("cached is not a folder, " + cached);
-	}
-
-	{
-	    Files.copy(//
-		    source.resolve("repository.inf"), //
-		    distro.resolve("repository.inf"), //
-		    StandardCopyOption.REPLACE_EXISTING);
-	}
-
-	{
-	    for (final Project pkg : this.getProjectsSequence()) {
-		if (!pkg.buildSource(this, repositoryCtx)) {
-		    return false;
-		}
-	    }
-	}
-
-	repositoryCtx.writeOut();
-
-	return true;
     }
 
     void compileAllJavaSource(final MakeCompileJava javaCompiler) throws Exception {
@@ -291,18 +206,10 @@ public class Repository {
 	return this.byName.values();
     }
 
-    public Iterable<Project> getProjectsSequence() {
-	return this.sequence;
-    }
-
     public Map<String, Set<Project>> getProvides() {
 	final Map<String, Set<Project>> result = new HashMap<>();
 	result.putAll(this.byProvides);
 	return result;
-    }
-
-    public Set<Project> getProvides(final OptionListItem name) {
-	return this.byProvides.get(name.getName());
     }
 
     @Override

@@ -3,6 +3,7 @@ package ru.myx.distro.prepare;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,14 +18,22 @@ import ru.myx.distro.Utils;
 public final class Distro {
     private final Map<String, Project> byProjectName = new HashMap<>();
 
+    private final Map<String, Set<Project>> byProvides = new HashMap<>();
+
     private final Map<String, Repository> byRepositoryName = new HashMap<>();
 
     private final List<Project> sequenceProjects = new ArrayList<>();
 
-    private final List<Repository> sequenceRepositories = new ArrayList<>();
-
     public Distro() {
 	//
+    }
+
+    boolean addKnown(final Project project) {
+	this.byProjectName.put(project.getName(), project);
+	this.byProjectName.put(project.repo.name + '/' + project.getName(), project);
+	this.addProvides(project, new OptionListItem(project.getName()));
+	this.addProvides(project, new OptionListItem(project.repo.name + '/' + project.getName()));
+	return true;
     }
 
     boolean addKnown(final Repository repo) {
@@ -32,35 +41,20 @@ public final class Distro {
 	return true;
     }
 
-    boolean addSequence(final Project project) {
-	if (this.sequenceProjects.contains(project)) {
-	    return false;
+    public void addProvides(final Project project, final OptionListItem provides) {
+	Set<Project> set = this.byProvides.get(provides.getName());
+	if (set == null) {
+	    set = new HashSet<>();
+	    this.byProvides.put(provides.getName(), set);
 	}
-	this.sequenceProjects.add(project);
-	return true;
-    }
-
-    boolean addSequence(final Repository repo) {
-	if (this.sequenceRepositories.contains(repo)) {
-	    return false;
-	}
-	this.sequenceRepositories.add(repo);
-	return true;
+	set.add(project);
     }
 
     public boolean buildCalculateSequence() {
-	this.sequenceRepositories.clear();
+	final Map<String, Project> checked = new HashMap<>();
 	this.sequenceProjects.clear();
-	for (final Repository repository : this.byRepositoryName.values()) {
-	    repository.buildCalculateSequence(this, new HashMap<>());
-	}
-	// sorted used repositories
-	for (final Project project : this.sequenceProjects) {
-	    this.addSequence(project.repo);
-	}
-	// empty unsorted then
-	for (final Repository repository : this.byRepositoryName.values()) {
-	    this.addSequence(repository);
+	for (final Project project : this.byProjectName.values()) {
+	    project.buildCalculateSequence(this.sequenceProjects, checked);
 	}
 	return true;
     }
@@ -72,7 +66,7 @@ public final class Distro {
 	    final Properties info = new Properties();
 	    {
 		final StringBuilder builder = new StringBuilder(256);
-		for (final Repository repository : this.sequenceRepositories) {
+		for (final Repository repository : this.byRepositoryName.values()) {
 		    builder.append(repository.name).append(' ');
 		    info.setProperty("REP-" + repository.name.trim(), repository.fetch.trim());
 		}
@@ -109,14 +103,26 @@ public final class Distro {
 	final List<String> compileJava = new ArrayList<>();
 	final ClasspathBuilder classpath = new ClasspathBuilder();
 
-	for (final Repository repo : this.sequenceRepositories) {
-	    repo.buildPrepareCompileIndex(console, this, outputTarget.resolve(repo.name), compileJava);
-	    repo.buildPrepareCompileIndexMakeClasspath(classpath);
+	for (final Repository repo : this.byRepositoryName.values()) {
+	    repo.buildPrepareDistroIndex(console, this, outputTarget.resolve(repo.name));
+	}
+	for (final Project project : this.sequenceProjects) {
+	    project.buildPrepareCompileIndex(console, outputTarget.resolve(project.repo.name).resolve(project.name),
+		    compileJava);
+	    project.buildPrepareCompileIndexMakeClasspath(classpath);
 	}
 
-	Files.write(//
+	Utils.save(//
+		console, //
 		outputTarget.resolve("distro-classpath.txt"), //
-		classpath);
+		classpath//
+	);
+
+	Utils.save(//
+		console, //
+		outputTarget.resolve("distro-sequence.txt"), //
+		this.sequenceProjects.stream().map(Project::projectFullName)//
+	);
     }
 
     public void buildPrepareDistroIndex(final ConsoleOutput console, final Path outputTarget, final boolean deep)
@@ -128,7 +134,7 @@ public final class Distro {
 	{
 	    final List<String> repositoryNames = new ArrayList<>();
 	    {
-		for (final Repository repo : this.sequenceRepositories) {
+		for (final Repository repo : this.byRepositoryName.values()) {
 		    repositoryNames.add(repo.getName());
 		}
 	    }
@@ -137,8 +143,12 @@ public final class Distro {
 	}
 
 	if (deep) {
-	    for (final Repository repo : this.sequenceRepositories) {
-		repo.buildPrepareDistroIndex(console, this, outputTarget.resolve(repo.name), true);
+	    for (final Repository repo : this.byRepositoryName.values()) {
+		repo.buildPrepareDistroIndex(console, this, outputTarget.resolve(repo.name));
+	    }
+	    for (final Project project : this.sequenceProjects) {
+		project.buildPrepareDistroIndex(console, outputTarget.resolve(project.repo.name).resolve(project.name),
+			true);
 	    }
 	}
     }
@@ -146,8 +156,39 @@ public final class Distro {
     public boolean buildPrepareIndexFromSource(final Path outputRoot, final Path sourceRoot) throws Exception {
 	final DistroBuildSourceContext ctx = new DistroBuildSourceContext(outputRoot, sourceRoot);
 	{
-	    for (final Repository repository : this.sequenceRepositories) {
-		repository.buildSource(this, ctx);
+	    for (final Repository repository : this.byRepositoryName.values()) {
+		final RepositoryBuildSourceContext repositoryCtx = new RepositoryBuildSourceContext(repository, ctx);
+		ctx.repos.put(repository, repositoryCtx);
+
+		final Path source = repositoryCtx.source;
+		if (!Files.isDirectory(source)) {
+		    throw new IllegalStateException("source is not a folder, " + source);
+		}
+
+		final Path distro = repositoryCtx.distro;
+		Files.createDirectories(distro);
+		if (!Files.isDirectory(distro)) {
+		    throw new IllegalStateException("distro is not a folder, " + distro);
+		}
+
+		final Path cached = repositoryCtx.cached;
+		Files.createDirectories(cached);
+		if (!Files.isDirectory(cached)) {
+		    throw new IllegalStateException("cached is not a folder, " + cached);
+		}
+
+		{
+		    Files.copy(//
+			    source.resolve("repository.inf"), //
+			    distro.resolve("repository.inf"), //
+			    StandardCopyOption.REPLACE_EXISTING);
+		}
+	    }
+	    for (final Project project : this.sequenceProjects) {
+		project.buildSource(ctx);
+	    }
+	    for (final RepositoryBuildSourceContext repositoryCtx : ctx.repos.values()) {
+		repositoryCtx.writeOut();
 	    }
 	}
 	ctx.writeOut();
@@ -173,6 +214,12 @@ public final class Distro {
 	    return null;
 	}
 	{
+	    final Project project = this.byProjectName.get(name);
+	    if (project != null) {
+		return project;
+	    }
+	}
+	{
 	    final String repositoryName = name.substring(0, pos);
 	    final Repository repo = this.byRepositoryName.get(repositoryName);
 	    if (repo == null) {
@@ -184,35 +231,12 @@ public final class Distro {
 
     public Map<String, Set<Project>> getProvides() {
 	final Map<String, Set<Project>> result = new HashMap<>();
-	for (final Repository repository : this.byRepositoryName.values()) {
-	    final Map<String, Set<Project>> provides = repository.getProvides();
-	    for (final String provide : provides.keySet()) {
-		Set<Project> set = result.get(provide);
-		if (set == null) {
-		    set = new HashSet<>();
-		    result.put(provide, set);
-		}
-		set.addAll(provides.get(provide));
-	    }
-	}
+	result.putAll(this.byProvides);
 	return result;
     }
 
     public Set<Project> getProvides(final OptionListItem name) {
-	Set<Project> set = null;
-	for (final Repository repository : this.byRepositoryName.values()) {
-	    final Set<Project> provides = repository.getProvides(name);
-	    if (provides == null) {
-		continue;
-	    }
-	    for (final Project provide : provides) {
-		if (set == null) {
-		    set = new HashSet<>();
-		}
-		set.add(provide);
-	    }
-	}
-	return set;
+	return this.byProvides.get(name.getName());
     }
 
     public Iterable<Repository> getRepositories() {
@@ -229,7 +253,6 @@ public final class Distro {
 
     public void reset() {
 	this.byRepositoryName.clear();
-	this.sequenceRepositories.clear();
 	this.byProjectName.clear();
 	this.sequenceProjects.clear();
     }

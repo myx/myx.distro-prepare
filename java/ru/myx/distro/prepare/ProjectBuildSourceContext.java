@@ -8,15 +8,19 @@ class ProjectBuildSourceContext {
 
     public final Project project;
 
-    public final RepositoryBuildSourceContext repository;
-
     public final Path source;
 
-    ProjectBuildSourceContext(final Project project, final RepositoryBuildSourceContext repository) {
+    ProjectBuildSourceContext(final Project project, final RepositoryBuildSourceContext ctx) {
 	this.project = project;
-	this.repository = repository;
-	this.source = repository.source.resolve(project.name);
-	this.distro = repository.distro.resolve(project.name);
-	this.cached = repository.cached.resolve(project.name);
+	this.source = ctx.source.resolve(project.name);
+	this.distro = ctx.distro.resolve(project.name);
+	this.cached = ctx.cached.resolve(project.name);
+    }
+
+    ProjectBuildSourceContext(final Project project, final DistroBuildSourceContext ctx) {
+	this.project = project;
+	this.source = ctx.source.resolve(project.repo.name).resolve(project.name);
+	this.distro = ctx.distro.resolve(project.repo.name).resolve(project.name);
+	this.cached = ctx.cached.resolve(project.repo.name).resolve(project.name);
     }
 }

@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -124,18 +125,22 @@ public class Project {
 	}
 	if (repo != null) {
 	    repo.addKnown(this);
+	    if (repo.distro != null) {
+		repo.distro.addKnown(this);
+	    }
 	}
     }
 
-    public void buildCalculateSequence(final Repository repository, final Distro repositories,
-	    final Map<String, Project> checked) {
-	if (checked.put(this.name, this) != null) {
+    public void buildCalculateSequence(final List<Project> sequence, final Map<String, Project> checked) {
+	if (checked.putIfAbsent(this.name, this) != null) {
 	    return;
 	}
 
+	final Distro distro = this.repo.distro;
+
 	for (final OptionListItem requires : this.lstRequires) {
 	    final String projectRequired = requires.getName();
-	    final Set<Project> projects = repositories.getProvides().get(projectRequired);
+	    final Set<Project> projects = distro.getProvides().get(projectRequired);
 	    if (projects == null) {
 		if ("java".equals(projectRequired)) {
 		    // FIXME
@@ -145,17 +150,16 @@ public class Project {
 			"Required project is unknown, name: " + projectRequired + " for " + this.name);
 	    }
 	    for (final Project project : projects) {
-		project.buildCalculateSequence(project.repo, repositories, checked);
+		project.buildCalculateSequence(sequence, checked);
 	    }
 	}
 
-	repository.addSequence(this);
-	repositories.addSequence(this);
+	sequence.add(this);
     }
 
-    public void buildPrepareCompileIndex(final ConsoleOutput console, final Repository repository,
-	    final Path projectOutput, final List<String> compileJava) throws Exception {
-	this.buildPrepareDistroIndex(console, repository, projectOutput, false);
+    public void buildPrepareCompileIndex(final ConsoleOutput console, final Path projectOutput,
+	    final List<String> compileJava) throws Exception {
+	this.buildPrepareDistroIndex(console, projectOutput, false);
 
 	Utils.save(//
 		console, //
@@ -231,8 +235,8 @@ public class Project {
 	return list;
     }
 
-    public void buildPrepareDistroIndex(final ConsoleOutput console, final Repository repository,
-	    final Path packageOutput, final boolean deep) throws Exception {
+    public void buildPrepareDistroIndex(final ConsoleOutput console, final Path packageOutput, final boolean deep)
+	    throws Exception {
 	Files.createDirectories(packageOutput);
 	if (!Files.isDirectory(packageOutput)) {
 	    throw new IllegalStateException("packageOutput is not a folder, " + packageOutput);
@@ -267,6 +271,16 @@ public class Project {
 		    true//
 	    );
 	}
+
+	{
+
+	    Utils.save(//
+		    console, //
+		    packageOutput.resolve("project-build-sequence.inf"), //
+		    this.getBuildSequence().stream().map(Project::projectFullName)//
+	    );
+
+	}
     }
 
     void buildPrepareDistroIndexFillProjectInfo(final Properties info) throws Exception {
@@ -278,7 +292,54 @@ public class Project {
 		this.lstContains.stream().reduce("", (t, u) -> u + ' ' + t).trim());
     }
 
-    public boolean buildSource(final Repository repository, final RepositoryBuildSourceContext ctx) throws Exception {
+    public boolean buildSource(final RepositoryBuildSourceContext ctx) throws Exception {
+
+	final ProjectBuildSourceContext projectContext = new ProjectBuildSourceContext(this, ctx);
+
+	final Path source = projectContext.source;
+	if (!Files.isDirectory(source)) {
+	    throw new IllegalStateException("source is not a folder, " + source);
+	}
+
+	final Path distro = projectContext.distro;
+	Files.createDirectories(distro);
+	if (!Files.isDirectory(distro)) {
+	    throw new IllegalStateException("distro is not a folder, " + distro);
+	}
+
+	{
+	    Files.copy(//
+		    source.resolve("project.inf"), //
+		    distro.resolve("project.inf"), //
+		    StandardCopyOption.REPLACE_EXISTING);
+	}
+
+	final Path javaSourcePath = projectContext.source.resolve("java");
+	if (Files.isDirectory(javaSourcePath)) {
+
+	    final Path cached = projectContext.cached;
+	    Files.createDirectories(cached);
+	    if (!Files.isDirectory(cached)) {
+		throw new IllegalStateException("cached is not a folder, " + cached);
+	    }
+
+	    ctx.addJavaCompileList(this.name);
+
+	    ctx.addJavaSourcePath(javaSourcePath);
+
+	    final Path javaCompilePath = projectContext.cached.resolve("java");
+	    Files.createDirectories(javaCompilePath);
+	    if (!Files.isDirectory(javaCompilePath)) {
+		throw new IllegalStateException("Can't create project output: " + javaCompilePath);
+	    }
+
+	    ctx.addJavaClassPath(javaCompilePath);
+	}
+
+	return true;
+    }
+
+    public boolean buildSource(final DistroBuildSourceContext ctx) throws Exception {
 
 	final ProjectBuildSourceContext projectContext = new ProjectBuildSourceContext(this, ctx);
 
@@ -428,6 +489,13 @@ public class Project {
 	return this.lstRequires;
     }
 
+    public List<Project> getBuildSequence() {
+	final Map<String, Project> checked = new HashMap<>();
+	final List<Project> sequence = new ArrayList<>();
+	this.buildCalculateSequence(sequence, checked);
+	return sequence;
+    }
+
     @Override
     public int hashCode() {
 	final int prime = 31;
@@ -504,6 +572,7 @@ public class Project {
 
 	for (final OptionListItem provides : this.lstProvides) {
 	    this.repo.addProvides(this, provides);
+	    this.repo.distro.addProvides(this, provides);
 	}
     }
 
@@ -512,6 +581,7 @@ public class Project {
 
 	for (final OptionListItem provides : this.lstProvides) {
 	    this.repo.addProvides(this, provides);
+	    this.repo.distro.addProvides(this, provides);
 	}
 
 	{
@@ -572,5 +642,9 @@ public class Project {
 
     public static String projectName(final Project project) {
 	return project.getName();
+    }
+
+    public static String projectFullName(final Project project) {
+	return project.repo.getName() + '/' + project.getName();
     }
 }

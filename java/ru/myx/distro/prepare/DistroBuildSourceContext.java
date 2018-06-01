@@ -4,7 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class DistroBuildSourceContext {
 
@@ -18,6 +20,8 @@ class DistroBuildSourceContext {
     public final Path output;
     public final Path source;
     private final List<String> sourcePathNames = new ArrayList<>();
+
+    Map<Repository, RepositoryBuildSourceContext> repos = new HashMap<>();
 
     DistroBuildSourceContext(final Path output, final Path source) {
 	this.output = output;

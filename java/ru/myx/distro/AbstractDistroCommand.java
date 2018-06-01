@@ -456,7 +456,7 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 	    throw new IllegalArgumentException("repository name is unknown, name: " + repositoryName);
 	}
 
-	for (final Project project : repository.getProjectsSequence()) {
+	for (final Project project : repository.getProjects()) {
 	    if (project.projectSourceRoot != null) {
 		if (!this.buildQueue.contains(project)) {
 		    this.buildQueue.add(project);
