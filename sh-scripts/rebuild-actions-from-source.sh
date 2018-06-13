@@ -25,6 +25,18 @@ RebuildActionsFromSource(){
 	
 	for REPO in $( ListAllSourceRepositories ) ; do
 		for PKG in $( ListSourceRepositoryProjects "$REPO" ) ; do
+			for ACTION in $( [ -d "$MMDAPP/source/$PKG/actions" ] && find "$MMDAPP/source/$PKG/actions" -mindepth 1 -type f -not -name '.*' -not -name '*.sh' ) ; do
+				local PKG="${PKG#$MMDAPP/source/}"
+				local ACTION="${ACTION#$MMDAPP/source/}"
+				local TARGET="$TMP_DIR/${ACTION#$PKG/actions/}"
+				printf "Processing: ${TARGET#$TMP_DIR/} \n \t \t \t <= ${ACTION#source/}\n" >&2
+				mkdir -p "`dirname "$TARGET"`"
+				
+				## sym-link is being created:
+				ln -fsv "$MMDAPP/source/${ACTION#$MMDAPP/}" "$TARGET"
+				
+				chmod ug=rx,o=r "$TARGET" 
+			done
 			for ACTION in $( [ -d "$MMDAPP/source/$PKG/actions" ] && find "$MMDAPP/source/$PKG/actions" -mindepth 1 -type f -name '*.sh' ) ; do
 				local PKG="${PKG#$MMDAPP/source/}"
 				local ACTION="${ACTION#$MMDAPP/source/}"
