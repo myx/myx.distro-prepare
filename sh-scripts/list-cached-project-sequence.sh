@@ -7,26 +7,22 @@ if [ -z "$MMDAPP" ] ; then
 	[ -d "$MMDAPP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
 fi
 
-ListCachedProjectSequence(){
+ExtractProjectSequenceFromIndex(){
 	local PKG="$1"
 	if [ -z "$PKG" ] ; then
-		echo "ListCachedProjectSequence: 'PKG' argument is required!" >&2 ; exit 1
+		echo "ExtractProjectSequenceFromIndex: 'PKG' argument is required!" >&2 ; exit 1
 	fi
 	
-	local INF="$MMDAPP/output/distro/$PKG/project-build-sequence.inf"
-	if [ -f "$INF" ] ; then
-		cat "$INF"
-		return 0
-	fi
-
 	local INF="$MMDAPP/output/distro/$PKG/project-index.inf"
 	if [ ! -f "$INF" ] ; then
-		echo "ListCachedProjectSequence: project.inf file is required (at: $INF)" >&2 ; exit 1
+		echo "ExtractProjectSequenceFromIndex: project.inf file is required (at: $INF)" >&2 ; exit 1
 	fi
 
 	local REPO="`echo $PKG | sed "s,/.*$,,g"`"
 	local MTC="PRJ-SEQ-${PKG#$REPO/}="
 	
+	local RESULT=""
+
 	local FILTER="$2"
 	if test -z "$FILTER" ; then
 		for ITEM in `cat "$INF" | grep "$MTC" | sed "s,^.*=,,g" | sort` ; do
@@ -39,7 +35,28 @@ ListCachedProjectSequence(){
 			fi
 		done
 	fi
+}
+
+ListCachedProjectSequence(){
+	local PKG="$1"
+	if [ -z "$PKG" ] ; then
+		echo "ListCachedProjectSequence: 'PKG' argument is required!" >&2 ; exit 1
+	fi
 	
+	local INF="$MMDAPP/output/distro/$PKG/project-build-sequence.inf"
+	if [ -f "$INF" ] ; then
+		cat "$INF"
+		return 0
+	fi
+
+	if [ "$2" = "--no-write" ] ; then
+		ExtractProjectSequenceFromIndex "$PKG"
+		return 0
+	fi
+	
+	local OUTPUT="`ExtractProjectSequenceFromIndex "$PKG"`"
+	echo "$OUTPUT" > "$INF"
+	echo "$OUTPUT"
 }
 
 case "$0" in
