@@ -288,8 +288,15 @@ public class Project {
 		this.lstRequires.toString());
 	info.setProperty("PRJ-PRV-" + this.name.trim(), //
 		this.lstProvides.toString());
-	info.setProperty("PRJ-GET-" + this.name.trim(),
-		this.lstContains.stream().reduce("", (t, u) -> u + ' ' + t).trim());
+	info.setProperty("PRJ-SEQ-" + this.name.trim(), //
+		this.getBuildSequence().stream()//
+			.map((project) -> project.name)//
+			.reduce("", (t, u) -> u + " " + t).trim()//
+	);
+	info.setProperty("PRJ-GET-" + this.name.trim(), //
+		this.lstContains.stream()//
+			.reduce("", (t, u) -> u + ' ' + t).trim()//
+	);
     }
 
     public boolean buildSource(final RepositoryBuildSourceContext ctx) throws Exception {
