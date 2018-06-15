@@ -25,29 +25,45 @@ RebuildActionsFromSource(){
 	
 	for REPO in $( ListAllSourceRepositories ) ; do
 		for PKG in $( ListSourceRepositoryProjects "$REPO" ) ; do
-			for ACTION in $( [ -d "$MMDAPP/source/$PKG/actions" ] && find "$MMDAPP/source/$PKG/actions" -mindepth 1 -type f -not -name '.*' -not -name '*.sh' ) ; do
+			for ACTION in $( [ -d "$MMDAPP/source/$PKG/actions" ] && find "$MMDAPP/source/$PKG/actions" -mindepth 1 -type f -not -name '.*' ) ; do
 				local PKG="${PKG#$MMDAPP/source/}"
 				local ACTION="${ACTION#$MMDAPP/source/}"
 				local TARGET="$TMP_DIR/${ACTION#$PKG/actions/}"
+				local ACTSRC="$MMDAPP/source/${ACTION#$MMDAPP/}"
 				printf "Processing: ${TARGET#$TMP_DIR/} \n \t \t \t <= ${ACTION#source/}\n" >&2
+
 				mkdir -p "`dirname "$TARGET"`"
-				
-				## sym-link is being created:
-				ln -fsv "$MMDAPP/source/${ACTION#$MMDAPP/}" "$TARGET"
-				
-				chmod ug=rx,o=r "$TARGET" 
-			done
-			for ACTION in $( [ -d "$MMDAPP/source/$PKG/actions" ] && find "$MMDAPP/source/$PKG/actions" -mindepth 1 -type f -name '*.sh' ) ; do
-				local PKG="${PKG#$MMDAPP/source/}"
-				local ACTION="${ACTION#$MMDAPP/source/}"
-				local TARGET="$TMP_DIR/${ACTION#$PKG/actions/}"
-				printf "Processing: ${TARGET#$TMP_DIR/} \n \t \t \t <= ${ACTION#source/}\n" >&2
-				mkdir -p "`dirname "$TARGET"`"
-				
-				## source code of script being created:
-				( echo "#/bin/sh" ; echo "export MMDAPP='$MMDAPP'" ; echo ". '$MMDAPP/source/${ACTION#$MMDAPP/}'" ) > "$TARGET"
-				
-				chmod ug=rx,o=r "$TARGET" 
+
+				case "$ACTION" in
+			        *.sh)
+						## source code of script being created:
+						( echo "#/bin/sh" ; echo "export MMDAPP='$MMDAPP'" ; echo ". '$MMDAPP/source/${ACTION#$MMDAPP/}'" ) > "$TARGET"
+						chmod ug=rx,o=r "$TARGET" 
+						;;
+			        *.url)
+			        	# ( grep -q '\[InternetShortcut\]' "$ACTSRC" ) && echo "GREP=EYS"
+			        	# [ "`wc -l < "$ACTSRC"`" -gt 1 ] && echo "WCS"
+			        	# echo "$ACTSRC: `wc -l < "$ACTSRC"`"
+						if ( grep -q '\[InternetShortcut\]' "$ACTSRC" ) || [ "`wc -l < "$ACTSRC"`" -gt 1 ] ; then
+							## sym-link is being created:
+							ln -fsv "$ACTSRC" "$TARGET"
+							chmod -h ug=rx,o=r "$TARGET" 
+						else
+				        	local SRCCODE="`cat "$ACTSRC"`"
+				        	if [ -f "$MMDAPP/source/$PKG/$SRCCODE" ] ; then
+				        		local SRCCODE="file://$MMDAPP/source/$PKG/$SRCCODE"
+				        	fi
+							## source code of script being created:
+							( echo "[InternetShortcut]" ; echo "URL=$SRCCODE" ; echo "WorkingDirectory=$MMDAPP/source/$PKG" ) > "$TARGET"
+							chmod ug=rx,o=r "$TARGET" 
+						fi 
+						;;
+			        *)
+						## sym-link is being created:
+						ln -fsv "$ACTSRC" "$TARGET"
+						chmod -h ug=rx,o=r "$TARGET" 
+			            ;;
+				esac
 			done
 		done	
 	done	
