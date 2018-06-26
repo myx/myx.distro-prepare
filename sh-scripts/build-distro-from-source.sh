@@ -7,9 +7,8 @@ if [ -z "$MMDAPP" ] ; then
 	[ -d "$MMDAPP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
 fi
 
-if [ "`type -t Async`" != "function" ] ; then
-. "`myx.common which lib/async`"
-fi
+type Async >/dev/null 2>&1 || \
+	. "`myx.common which lib/async`"
 
 . "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-all-source-repositories.sh"
 . "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-all-source-projects.sh"

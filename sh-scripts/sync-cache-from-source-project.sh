@@ -12,9 +12,8 @@ if [ -z "`which rsync`" ] ; then
 	exit 1
 fi
 
-if [ "`type -t Async`" != "function" ] ; then
-. "`myx.common which lib/async`"
-fi
+type Async >/dev/null 2>&1 || \
+	. "`myx.common which lib/async`"
 
 SyncCacheFromSourceProject(){
 	local PKG="${1#$MMDAPP/source/}"
