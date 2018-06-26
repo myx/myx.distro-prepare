@@ -12,11 +12,12 @@ ListCachedProjectProvidesMergeSequence(){
 	if [ -z "$PKG" ] ; then
 		echo "ListCachedProjectProvides: 'PKG' argument is required!" >&2 ; exit 1
 	fi
+	shift
 
-	(
+	( \
 		. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/list-cached-project-sequence.sh" ;
 		for PROJECT in $( ListCachedProjectSequence "$PKG" ) ; do
-			ListCachedProjectProvides "$PROJECT"
+			ListCachedProjectProvides "$PROJECT" "$@"
 		done	
 	) | uniq		
 }
