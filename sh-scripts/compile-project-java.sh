@@ -13,8 +13,9 @@ CompileProjectJava(){
 		RunJavaClassSource \
 			myx/myx.distro-prepare \
 			ru.myx.distro.prepare.MakeCompileSources \
-			"$MMDAPP/cached/source" \
-			"$MMDAPP/output" \
+			--source-root "$MMDAPP/cached/source" \
+			--output-root "$MMDAPP/output" \
+			--import-from-source \
 			--project "$PKG" \
 	)
 
@@ -27,8 +28,8 @@ CompileProjectJava(){
 		RunJavaClassSource \
 			myx/myx.distro-prepare \
 			ru.myx.distro.prepare.MakeCompileSources \
-			"$MMDAPP/source" \
-			"$MMDAPP/output" \
+			--source-root "$MMDAPP/source" \
+			--output-root "$MMDAPP/output" \
 			--from-output \
 			--project "$PKG" \
 	)

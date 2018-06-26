@@ -1,72 +1,131 @@
 package ru.myx.distro.prepare;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
-public class MakeCompileSources {
+import ru.myx.distro.AbstractCommand;
+import ru.myx.distro.AbstractDistroCommand;
+import ru.myx.distro.OperationContext;
+import ru.myx.distro.OperationObject;
 
-    public static void main(final String[] args) throws Exception {
-	if (args.length < 2) {
-	    System.err.println(MakeCompileSources.class.getSimpleName() + ": 'source-root' 'output-root'");
-	    Runtime.getRuntime().exit(-1);
+public class MakeCompileSources extends AbstractDistroCommand {
+
+    protected static final Map<String, OperationObject<? super MakeCompileSources>> OPERATIONS;
+
+    static {
+	OPERATIONS = new HashMap<>();
+	MakeCompileSources.OPERATIONS.putAll(AbstractDistroCommand.OPERATIONS);
+
+	final Map<String, OperationObject<MakeCompileSources>> operations = new HashMap<>();
+	AbstractCommand.registerOperation(operations, context -> {
+	    context.classesFromOutput = true;
+	    return true;
+	}, "--from-output");
+	AbstractCommand.registerOperation(operations, context -> {
+	    context.doImportFromIndex(context.outputRoot.normalize());
+	    context.classesFromOutput = true;
+	    return true;
+	}, "--import-from-output");
+	AbstractCommand.registerOperation(operations, context -> {
+	    context.doAddAllSourceRepositories(context.sourceRoot.normalize());
+	    return true;
+	}, "--import-from-source");
+	AbstractCommand.registerOperation(operations, context -> {
+	    final MakeCompileJava javaCompiler = new MakeCompileJava(//
+		    context.sourceRoot.normalize(), //
+		    context.outputRoot.normalize()//
+	    );
+	    javaCompiler.sourcesFromOutput = context.classesFromOutput;
+	    javaCompiler.console = context.console;
+	    context.repositories.compileAllJavaSource(javaCompiler);
+	    return true;
+	}, "--all");
+	AbstractCommand.registerOperation(operations, context -> {
+	    if (!context.arguments.hasNext()) {
+		throw new IllegalArgumentException("repository name is expected");
+	    }
+
+	    final String repositoryName = context.arguments.next();
+
+	    final MakeCompileJava javaCompiler = new MakeCompileJava(//
+		    context.sourceRoot.normalize(), //
+		    context.outputRoot.normalize()//
+	    );
+	    javaCompiler.sourcesFromOutput = context.classesFromOutput;
+	    javaCompiler.console = context.console;
+	    final Repository repo = context.repositories.getRepository(repositoryName);
+	    if (repo == null) {
+		throw new IllegalArgumentException("repository is unknown, name: " + repositoryName);
+	    }
+	    repo.compileAllJavaSource(javaCompiler);
+
+	    return true;
+	}, "--repository");
+	AbstractCommand.registerOperation(operations, context -> {
+	    if (!context.arguments.hasNext()) {
+		throw new IllegalArgumentException("project name is expected");
+	    }
+
+	    final String projectName = context.arguments.next();
+
+	    context.repositories.buildCalculateSequence();
+	    context.doSelectProject(projectName);
+
+	    final MakeCompileJava javaCompiler = new MakeCompileJava(//
+		    context.sourceRoot.normalize(), //
+		    context.outputRoot.normalize()//
+	    );
+	    javaCompiler.sourcesFromOutput = context.classesFromOutput;
+	    javaCompiler.console = context.console;
+	    final Project proj = context.repositories.getProject(projectName);
+	    if (proj == null) {
+		throw new IllegalArgumentException("project is unknown, name: " + projectName);
+	    }
+	    proj.compileAllJavaSource(javaCompiler);
+
+	    return true;
+	}, "--project");
+
+	MakeCompileSources.OPERATIONS.putAll(operations);
+    }
+
+    public static void main(final String[] args) throws Throwable {
+	final MakeCompileSources context = new MakeCompileSources();
+	context.console = new ConsoleOutput();
+	context.repositories = new Distro();
+	context.arguments = Arrays.asList(args).iterator();
+
+	if (args.length == 0) {
+	    AbstractCommand.doPrintSyntax(context, MakeCompileSources.OPERATIONS);
 	    return;
 	}
 
-	final Path sourceRoot = Paths.get(args[0]);
-	if (!Files.isDirectory(sourceRoot)) {
-	    System.err.println(
-		    MakeCompileSources.class.getSimpleName() + ": source-root is not a directory: " + sourceRoot);
-	    Runtime.getRuntime().exit(-2);
-	    return;
+	context.execute(context);
+    }
+
+    @Override
+    public boolean execute(final OperationContext context) throws Exception {
+	if (!context.arguments.hasNext()) {
+	    return false;
 	}
-
-	final Path outputRoot = Paths.get(args[1]);
-	if (!Files.isDirectory(outputRoot)) {
-	    System.err.println(MakeCompileSources.class.getSimpleName() + ": output-root is not a directory");
-	    Runtime.getRuntime().exit(-3);
-	    return;
-	}
-
-	final Distro repositories = new Distro();
-	repositories.buildPrepareIndexFromSource(outputRoot, sourceRoot);
-
-	final MakeCompileJava javaCompiler = new MakeCompileJava(sourceRoot, outputRoot);
-
-	// repositories.loadFromLocalIndex(outputRoot.resolve("distro"));
-	for (int i = 2; i < args.length; ++i) {
-	    final String arg = args[i];
-	    if ("--from-output".equals(arg)) {
-		javaCompiler.sourcesFromOutput = true;
-		continue;
+	for (;;) {
+	    final String command = context.arguments.next();
+	    final OperationObject<? super MakeCompileSources> operation = MakeCompileSources.OPERATIONS.get(command);
+	    if (operation == null) {
+		throw new IllegalArgumentException("Unknown option: " + command);
 	    }
-	    if ("--all".equals(arg)) {
-		repositories.compileAllJavaSource(javaCompiler);
-		continue;
+	    if (!operation.execute(this)) {
+		this.console.outDebug("operation signalled a stop, exiting with: okState=",
+			String.valueOf(this.okState));
+		return this.okState;
 	    }
-	    if ("--repository".equals(arg)) {
-		if (++i >= args.length) {
-		    throw new IllegalArgumentException("repository is expected for --repository agrument");
-		}
-		final Repository repo = repositories.getRepository(args[i]);
-		if (repo == null) {
-		    throw new IllegalArgumentException("repository is unknown, name: " + args[i]);
-		}
-		repo.compileAllJavaSource(javaCompiler);
-		continue;
-	    }
-	    if ("--project".equals(arg)) {
-		if (++i >= args.length) {
-		    throw new IllegalArgumentException("project is expected for --project agrument");
-		}
-		final Project proj = repositories.getProject(args[i]);
-		if (proj == null) {
-		    throw new IllegalArgumentException("project is unknown, name: " + args[i]);
-		}
-		proj.compileAllJavaSource(javaCompiler);
-		continue;
+	    if (!context.arguments.hasNext()) {
+		return true;
 	    }
 	}
     }
+
+    protected boolean classesFromOutput = false;
 
 }

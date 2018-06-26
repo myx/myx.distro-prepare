@@ -446,7 +446,7 @@ public class Project {
 		    final Path distro = javaCompiler.outputRoot.resolve("distro").resolve(this.repo.name)
 			    .resolve(this.name).resolve("java");
 
-		    Utils.sync(null, //
+		    Utils.sync(javaCompiler.console, //
 			    source == target ? Arrays.asList(target) : Arrays.asList(target, source), //
 			    distro//
 		    );

@@ -12,8 +12,8 @@ CompileRepositoryJava(){
 		RunJavaClassSource \
 			myx/myx.distro-prepare \
 			ru.myx.distro.prepare.MakeCompileSources \
-			"$MMDAPP/source" \
-			"$MMDAPP/output" \
+			--source-root "$MMDAPP/source" \
+			--output-root "$MMDAPP/output" \
 			--repository "$REPO_NAME" \
 	)
 }

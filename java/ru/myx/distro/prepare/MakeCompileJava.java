@@ -127,6 +127,8 @@ public class MakeCompileJava {
 
     boolean sourcesFromOutput = false;
 
+    ConsoleOutput console = null;
+
     MakeCompileJava(final Path sourceRoot, final Path outputRoot) throws Exception {
 	this.sourceRoot = sourceRoot;
 	this.outputRoot = outputRoot;
