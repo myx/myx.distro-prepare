@@ -30,7 +30,7 @@ RebuildActionsFromSource(){
 				local ACTION="${ACTION#$MMDAPP/source/}"
 				local TARGET="$TMP_DIR/${ACTION#$PKG/actions/}"
 				local ACTSRC="$MMDAPP/source/${ACTION#$MMDAPP/}"
-				printf %s "Processing: ${TARGET#$TMP_DIR/} \n \t \t \t <= ${ACTION#source/}\n" >&2
+				printf "Processing: %s \n \t \t \t <= %s\n" "${TARGET#$TMP_DIR/}" "${ACTION#source/}" >&2
 
 				mkdir -p "`dirname "$TARGET"`"
 
