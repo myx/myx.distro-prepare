@@ -27,14 +27,14 @@ SyncExportsFromCached(){
 	local EXPORT_DST="$MMDAPP/output/export/$DST"
 
 	if test -e "$DISTRO_DIR/$SRC" ; then
-		printf %s "sync-export: $PKG $SRC (dis) \n \t \t <= $DST\n" >&2
+		printf 'sync-export: %s %s (dis) \n \t \t <= %s\n' "$PKG" "$SRC" "$DST" >&2
 		mkdir -p "`dirname "$EXPORT_DST"`"
 		rsync -ai --delete "$DISTRO_DIR/$SRC" "$EXPORT_DST"
 		return 0
 	fi
 	
 	if test -e "$SOURCE_DIR/$SRC" ; then
-		printf %s "sync-export: $PKG $SRC (src) \n \t \t <= $DST\n" >&2
+		printf 'sync-export: %s %s (src) \n \t \t <= %s\n' "$PKG" "$SRC" "$DST" >&2
 		mkdir -p "`dirname "$EXPORT_DST"`"
 		rsync -ai --delete "$SOURCE_DIR/$SRC" "$EXPORT_DST"
 		return 0
