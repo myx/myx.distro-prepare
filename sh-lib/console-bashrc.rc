@@ -1,0 +1,3 @@
+echo "Working in $MMDAPP" >&2
+[ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc" 
+PATH="$PATH:$MMDAPP/source/myx/myx.distro-prepare/sh-scripts:$MMDAPP/source/myx/myx.distro-util/sh-scripts:$MMDAPP/source/myx/myx.distro-install/sh-scripts"
