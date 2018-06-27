@@ -42,15 +42,23 @@ ListCachedProjectProvides(){
 	local REPO="`echo $PKG | sed "s,/.*$,,g"`"
 	local MTC="PRJ-PRV-${PKG#$REPO/}="
 	
-	local FILTER="$2"
+	if [ "$2" = "--print-project" ] ; then
+		local PREFIX="$PKG "
+		local FILTER="$3"
+	else
+		local PREFIX=""
+		local FILTER="$2"
+	fi
+	
+	
 	if test -z "$FILTER" ; then
 		for ITEM in `cat "$INF" | grep "$MTC" | sed "s,^.*=,,g" | sort` ; do
-			echo $ITEM
+			echo $PREFIX$ITEM
 		done
 	else
 		for ITEM in `cat "$INF" | grep "$MTC" | sed "s,^.*=,,g" | sort` ; do
 			if test "$ITEM" != "${ITEM#$FILTER\\:}" ; then
-				echo ${ITEM#$FILTER\\:} | tr "|" "\n"
+				echo ${ITEM#$FILTER\\:} | tr '|' '\n' | sed "s|^|$PREFIX|g" 
 			fi
 		done
 	fi
@@ -60,7 +68,7 @@ ListCachedProjectProvides(){
 case "$0" in
 	*/sh-scripts/list-cached-project-provides.sh) 
 		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
-			echo "syntax: list-cached-project-provides.sh [--help/--merge-sequence] <project_name>" >&2
+			echo "syntax: list-cached-project-provides.sh [--help/--merge-sequence] <project_name> [--print-project] [filter_by]" >&2
 			exit 1
 		fi
 		ListCachedProjectProvides "$@"
