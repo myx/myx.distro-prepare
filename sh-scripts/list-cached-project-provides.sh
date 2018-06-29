@@ -66,7 +66,13 @@ ListCachedProjectProvides(){
 }
 
 case "$0" in
-	*/sh-scripts/list-cached-project-provides.sh) 
+	*/sh-scripts/list-cached-project-provides.sh)
+		# list-cached-project-provides.sh ndm/cloud.dev/setup.host-ndss-hz.ndm9.xyz 
+		# list-cached-project-provides.sh --merge-sequence ndm/cloud.dev/setup.host-ndss-hz.ndm9.xyz --print-project 
+		# list-cached-project-provides.sh ndm/cloud.knt/setup.host-ndss111r3.ndm9.xyz --print-project deploy-keyword
+		# list-cached-project-provides.sh --merge-sequence ndm/cloud.knt/setup.host-ndss111r3.ndm9.xyz deploy-keyword
+		# list-cached-project-provides.sh --merge-sequence ndm/cloud.knt/setup.host-ndss111r3.ndm9.xyz --print-project deploy-keyword
+
 		if [ -z "$1" ] || [ "$1" = "--help" ] ; then
 			echo "syntax: list-cached-project-provides.sh [--help/--merge-sequence] <project_name> [--print-project] [filter_by]" >&2
 			exit 1

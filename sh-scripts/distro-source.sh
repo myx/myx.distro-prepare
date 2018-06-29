@@ -25,6 +25,10 @@ exit 0
 ###   Source:
 ###
 
+# distro-source.sh --import-from-source --print-repositories --print ""
+# distro-source.sh --import-from-source --print-projects --print ""
+
+
 ./distro/distro-source-prepare-output.command
 
 ./distro/distro-source.sh
