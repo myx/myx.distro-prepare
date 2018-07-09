@@ -9,6 +9,7 @@ fi
 
 if ! type DistroShellContext >/dev/null 2>&1 ; then
 	. "$MMDAPP/source/myx/myx.distro-prepare/sh-lib/DistroShellContext.include"
+	DistroShellContext --distro-from-source
 fi
 
 Require RebuildActions
@@ -28,10 +29,6 @@ RebuildSourceActions(){
 
 case "$0" in
 	*/sh-scripts/RebuildSourceActions.fn.sh) 
-
-		. "$( dirname $0 )/../sh-lib/DistroShellContext.include"
-		DistroShellContext --distro-from-source
-		
 		RebuildSourceActions "$@"
 	;;
 esac
