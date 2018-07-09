@@ -70,8 +70,8 @@ public class DistroSourceCommand extends AbstractDistroCommand {
 	{
 
 	    AbstractCommand.registerOperation(operations, context -> {
-		context.repositories.buildCalculateSequence();
 		context.doSelectAllFromSource();
+		context.repositories.buildCalculateSequence(null);
 		return true;
 	    }, "--select-all-from-source");
 	}
@@ -79,12 +79,17 @@ public class DistroSourceCommand extends AbstractDistroCommand {
 	{
 
 	    AbstractCommand.registerOperation(operations, context -> {
-		context.doPrepareCheckBuildRoots();
+		context.doPrepareBuildRoots();
 		return true;
 	    }, "--prepare-build-roots");
 
 	    AbstractCommand.registerOperation(operations, context -> {
-		context.doPrepateBuildCachedIndex();
+		context.doPrepareSourceToCachedIndex();
+		return true;
+	    }, "--prepare-source-to-cached-index");
+
+	    AbstractCommand.registerOperation(operations, context -> {
+		context.doPrepareBuildCompileIndex();
 		return true;
 	    }, "--prepare-build-compile-index");
 
@@ -113,7 +118,6 @@ public class DistroSourceCommand extends AbstractDistroCommand {
 		    throw new IllegalArgumentException("project name is expected");
 		}
 
-		context.repositories.buildCalculateSequence();
 		context.doSelectProject(context.arguments.next());
 		context.doSelectRequired();
 		return context.build();
@@ -124,21 +128,18 @@ public class DistroSourceCommand extends AbstractDistroCommand {
 		    throw new IllegalArgumentException("repository name is expected");
 		}
 
-		context.repositories.buildCalculateSequence();
 		context.doSelectRepository(context.arguments.next());
 		context.doSelectRequired();
 		return context.build();
 	    }, "--build-repository");
 
 	    AbstractCommand.registerOperation(operations, context -> {
-		context.repositories.buildCalculateSequence();
 		context.doSelectAll();
 		return context.build();
 	    }, "--build-all");
 	}
 	{
 	    AbstractCommand.registerOperation(operations, context -> {
-		context.repositories.buildCalculateSequence();
 		context.doPrepareBuild();
 		context.doSelectAllFromSource();
 		context.build();
@@ -197,7 +198,7 @@ public class DistroSourceCommand extends AbstractDistroCommand {
 
     public void doMakePackagesFromFolders() throws Exception {
 
-	final Project project = this.repositories.getProject("myx.distro-util");
+	final Project project = this.repositories.getProject("myx/myx.distro-util");
 	if (project == null) {
 	    throw new IllegalStateException("Need myx.distro-util project available!");
 	}
@@ -208,12 +209,13 @@ public class DistroSourceCommand extends AbstractDistroCommand {
     public void doPrepareBuild() throws Exception {
 	this.console.outDebug("prepare 'cache' build from 'source' directory");
 
-	this.repositories.buildCalculateSequence();
+	this.repositories.buildCalculateSequence(null);
 
-	this.doPrepareCheckBuildRoots();
+	this.doPrepareBuildRoots();
 	this.doPrepareBuildDistroIndex();
-	this.doPrepateBuildCachedIndex();
+	this.doPrepareSourceToCachedIndex();
 	this.doPrepateBuildFetchMissing();
+	this.doPrepareBuildCompileIndex();
 	this.doPrepateBuildCompileJava();
     }
 
@@ -225,7 +227,7 @@ public class DistroSourceCommand extends AbstractDistroCommand {
 	);
     }
 
-    public void doPrepareCheckBuildRoots() throws IOException {
+    public void doPrepareBuildRoots() throws IOException {
 	if (this.outputRoot == null) {
 	    throw new IllegalStateException("outputRoot is not set, use --output-root option");
 	}
@@ -248,7 +250,17 @@ public class DistroSourceCommand extends AbstractDistroCommand {
 	}
     }
 
-    public void doPrepateBuildCachedIndex() throws Exception {
+    public void doPrepareSourceToCachedIndex() throws Exception {
+	this.console.outDebug("check update build source-2-cache indices");
+
+	this.repositories.buildPrepareDistroIndex(//
+		this.console, //
+		this.cachedRoot.normalize(), //
+		true//
+	);
+    }
+
+    public void doPrepareBuildCompileIndex() throws Exception {
 	this.console.outDebug("check update build cache indices");
 
 	this.repositories.buildPrepareCompileIndex(//

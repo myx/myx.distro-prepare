@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import ru.myx.distro.prepare.Distro;
@@ -82,15 +83,46 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 
 	{
 	    AbstractCommand.registerOperation(operations, context -> {
-		return context.repositories.buildCalculateSequence();
+		return context.repositories.buildCalculateSequence(null);
+	    }, "--prepare-full-sequence");
+
+	    AbstractCommand.registerOperation(operations, context -> {
+		return context.repositories.buildCalculateSequence(context.buildQueue);
 	    }, "--prepare-sequence");
 
 	    AbstractCommand.registerOperation(operations, context -> {
 		for (final Project project : context.repositories.getSequenceProjects()) {
-		    System.out.println(project.repo.name + '/' + project.name);
+		    System.out.println(project.getFullName());
+		}
+		return true;
+	    }, "--print-full-sequence");
+
+	    AbstractCommand.registerOperation(operations, context -> {
+
+		for (final Project project : context.buildQueue) {
+		    System.out.println(project.getFullName());
 		}
 		return true;
 	    }, "--print-sequence");
+
+	    AbstractCommand.registerOperation(operations, context -> {
+		final StringBuilder builder = new StringBuilder(256);
+		boolean first = true;
+		for (final Project project : context.buildQueue) {
+		    final String projectName = project.getFullName();
+		    final Set<OptionListItem> provides = project.getProvides();
+		    for (final OptionListItem provide : provides) {
+			if (first) {
+			    first = false;
+			} else {
+			    builder.append('\n');
+			}
+			builder.append(projectName).append(' ').append(provide.toString());
+		    }
+		}
+		System.out.println(builder);
+		return true;
+	    }, "--print-provides");
 
 	    AbstractCommand.registerOperation(operations, context -> {
 		final Map<String, Set<Project>> provides = context.repositories.getProvides();
@@ -103,7 +135,7 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 		    System.out.println(builder);
 		}
 		return true;
-	    }, "--print-provides");
+	    }, "--print-all-provides");
 
 	    AbstractCommand.registerOperation(operations, context -> {
 		if (!context.arguments.hasNext()) {
@@ -150,7 +182,7 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 
 	{
 	    AbstractCommand.registerOperation(operations, context -> {
-		context.repositories.buildCalculateSequence();
+		context.repositories.buildCalculateSequence(null);
 		context.doSelectAll();
 		return true;
 	    }, "--select-all");
@@ -159,7 +191,6 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 		if (!context.arguments.hasNext()) {
 		    throw new IllegalArgumentException("project name is expected");
 		}
-		context.repositories.buildCalculateSequence();
 		context.doSelectProject(context.arguments.next());
 		return true;
 	    }, "--select-project");
@@ -168,7 +199,6 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 		if (!context.arguments.hasNext()) {
 		    throw new IllegalArgumentException("provider spec is expected");
 		}
-		context.repositories.buildCalculateSequence();
 		context.doSelectProviders(new OptionListItem(context.arguments.next()));
 		return true;
 	    }, "--select-providers");
@@ -177,7 +207,6 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 		if (!context.arguments.hasNext()) {
 		    throw new IllegalArgumentException("repository name is expected");
 		}
-		context.repositories.buildCalculateSequence();
 		context.doSelectRepository(context.arguments.next());
 		return true;
 	    }, "--select-repository");
@@ -186,7 +215,6 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 		if (context.buildQueue.isEmpty()) {
 		    throw new IllegalStateException("No queue to build");
 		}
-		context.repositories.buildCalculateSequence();
 		context.doSelectRequired();
 		return true;
 	    }, "--select-required");
@@ -195,7 +223,6 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 		if (!context.arguments.hasNext()) {
 		    throw new IllegalArgumentException("project name is expected");
 		}
-		context.repositories.buildCalculateSequence();
 		context.doUnselectProject(context.arguments.next());
 		return true;
 	    }, "--unselect-project");
@@ -204,7 +231,6 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 		if (!context.arguments.hasNext()) {
 		    throw new IllegalArgumentException("project name is expected");
 		}
-		context.repositories.buildCalculateSequence();
 		context.doUnselectProviders(new OptionListItem(context.arguments.next()));
 		return true;
 	    }, "--unselect-providers");
@@ -470,7 +496,7 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 
 	final QueueSelection selected = new QueueSelection();
 	final LinkedList<Project> queue = new LinkedList<>(this.buildQueue);
-	final Set<String> known = new TreeSet<>();
+	final Map<String, Project> known = new TreeMap<>();
 
 	queue: for (;;) {
 	    final Project project = queue.pollFirst();
@@ -492,26 +518,20 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 
 		for (final Project provider : providers) {
 		    this.console.outDebug(" PV-NEXT: ", provider, ", known: ", known);
-		    if (known.add(provider.toString())) {
+		    if (known.putIfAbsent(provider.getFullName(), provider) == null) {
 			if (added == 0) {
-			    if (known.add(project.toString())) {
-				this.console.outDebug("BQ-PUSH: ", project, ", known: ", known);
+			    if (known.putIfAbsent(project.getFullName(), project) == null) {
 				queue.addFirst(project);
+				this.console.outDebug("BQ-SEL2: ", project, ", known: ", known);
+				selected.addFirst(project);
 			    }
 			}
 			queue.addFirst(provider);
+			this.console.outDebug("BQ-SEL3: ", provider, ", known: ", known);
+			selected.addFirst(provider);
 			++added;
 		    }
 		}
-	    }
-
-	    if (added > 0) {
-		continue queue;
-	    }
-
-	    if (!selected.contains(project)) {
-		this.console.outDebug("BQ-STEP: ", project, ", known: ", known);
-		selected.addLast(project);
 	    }
 	    continue queue;
 	}

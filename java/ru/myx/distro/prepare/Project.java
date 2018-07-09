@@ -66,15 +66,15 @@ public class Project {
 	try (final InputStream in = Files.newInputStream(infPath)) {
 	    info.load(in);
 	}
-	final String name = info.getProperty("Name", "").trim();
-	if (name.length() == 0) {
+	final String checkName = info.getProperty("Name", "").trim();
+	if (checkName.length() == 0) {
 	    // 'Name' is mandatory
 	    System.err.println(Project.class.getSimpleName() + ": skipped, no 'Name' in project.inf");
 	    return null;
 	}
-	if (!name.equals(packageName) && !packageName.endsWith('/' + name)) {
-	    System.err
-		    .println(Project.class.getSimpleName() + ": packageName mismatch: " + packageName + " != " + name);
+	if (!checkName.equals(packageName) && !packageName.endsWith('/' + checkName)) {
+	    System.err.println(
+		    Project.class.getSimpleName() + ": packageName mismatch: " + packageName + " != " + checkName);
 	    return null;
 	}
 	final Project project = new Project(packageName, info, repo);
@@ -117,7 +117,10 @@ public class Project {
 
     Project(final String name, final Properties info, final Repository repo) {
 	this.repo = repo;
-	this.name = name;
+	this.name = name.trim();
+	this.lstProvides.add(new OptionListItem(this.getName()));
+	// a bit excessive? remove maybe? full project name is obviously well-known
+	// <code>this.lstProvides.add(new OptionListItem(this.getFullName()));</code>
 	if (info != null) {
 	    Project.updateList(info.getProperty("Requires", "").split(" "), this.lstRequires);
 	    Project.updateList(info.getProperty("Provides", "").split(" "), this.lstProvides);
@@ -140,6 +143,14 @@ public class Project {
 
 	for (final OptionListItem requires : this.lstRequires) {
 	    final String projectRequired = requires.getName();
+	    /** full project name is unique and not checked against provides lists */
+	    if (projectRequired.indexOf('/') > 0) {
+		final Project project = distro.getProject(projectRequired);
+		if (project != null && projectRequired.equals(project.getFullName())) {
+		    project.buildCalculateSequence(sequence, checked);
+		    continue;
+		}
+	    }
 	    final Set<Project> projects = distro.getProvides().get(projectRequired);
 	    if (projects == null) {
 		if ("java".equals(projectRequired)) {
@@ -244,7 +255,7 @@ public class Project {
 
 	{
 	    final Properties info = new Properties();
-	    info.setProperty("Name", this.name.trim());
+	    info.setProperty("Name", this.getFullName());
 	    info.setProperty("Requires", this.lstRequires.toString());
 	    info.setProperty("Provides", this.lstProvides.toString());
 
@@ -259,8 +270,8 @@ public class Project {
 
 	{
 	    final Properties info = new Properties();
-	    info.setProperty("PROJ", this.name.trim());
-	    info.setProperty("PRJS", this.name.trim());
+	    info.setProperty("PROJ", this.getFullName());
+	    info.setProperty("PRJS", this.getFullName());
 	    this.buildPrepareDistroIndexFillProjectInfo(info);
 
 	    Utils.save(//
@@ -276,7 +287,7 @@ public class Project {
 
 	    Utils.save(//
 		    console, //
-		    packageOutput.resolve("project-build-sequence.inf"), //
+		    packageOutput.resolve("project-build-sequence.txt"), //
 		    this.getBuildSequence().stream().map(Project::projectFullName)//
 	    );
 
@@ -284,16 +295,16 @@ public class Project {
     }
 
     void buildPrepareDistroIndexFillProjectInfo(final Properties info) throws Exception {
-	info.setProperty("PRJ-REQ-" + this.name.trim(), //
+	info.setProperty("PRJ-REQ-" + this.getFullName(), //
 		this.lstRequires.toString());
-	info.setProperty("PRJ-PRV-" + this.name.trim(), //
+	info.setProperty("PRJ-PRV-" + this.getFullName(), //
 		this.lstProvides.toString());
-	info.setProperty("PRJ-SEQ-" + this.name.trim(), //
+	info.setProperty("PRJ-SEQ-" + this.getFullName(), //
 		this.getBuildSequence().stream()//
-			.map((project) -> project.name)//
+			.map(Project::projectFullName)//
 			.reduce("", (t, u) -> u + " " + t).trim()//
 	);
-	info.setProperty("PRJ-GET-" + this.name.trim(), //
+	info.setProperty("PRJ-GET-" + this.getFullName(), //
 		this.lstContains.stream()//
 			.reduce("", (t, u) -> u + ' ' + t).trim()//
 	);
@@ -484,8 +495,12 @@ public class Project {
 	return true;
     }
 
-    public String getName() {
+    public final String getName() {
 	return this.name;
+    }
+
+    public final String getFullName() {
+	return this.repo.name + '/' + this.name;
     }
 
     public OptionList getProvides() {
@@ -652,6 +667,6 @@ public class Project {
     }
 
     public static String projectFullName(final Project project) {
-	return project.repo.getName() + '/' + project.getName();
+	return project.repo.name + '/' + project.name;
     }
 }

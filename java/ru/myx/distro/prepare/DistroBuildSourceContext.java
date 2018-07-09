@@ -50,7 +50,7 @@ class DistroBuildSourceContext {
 	Files.write(this.cached.resolve("compile-list.txt"), //
 		this.javaCompileList, StandardCharsets.UTF_8);
 
-	Files.write(this.cached.resolve("java-classpath.txt"), //
+	Files.write(this.cached.resolve("distro-classpath.txt"), //
 		this.classPathNames, StandardCharsets.UTF_8);
 
 	Files.write(this.cached.resolve("java-sourcepath.txt"), //

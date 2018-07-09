@@ -14,7 +14,7 @@ App Folders:
 /source - source codes
 /source/repo[/group]/project - structure
 /cached - build system space
-/cached/source - synched source for source->distro builders
+/cached/sources - synched source for source->distro builders
 /cached/changed - package names that are changed and need to be built
 /cached/built - package names that are built
 /output - output products
@@ -33,12 +33,16 @@ sh-libs/**
 sh-scripts/**
 
 Default build steps:
-1101-prepare-start-setup-environment
-1200-prepare-sync-source-check-changes
-1201-host-tarball ( host/tarball/** )
-1201-java-compile ( java/** )
-1801-actions-make ( actions/** )
-1899-prepare-finished
+	1xxx - source to cached (mode: source, stage: prepare) 
+				cached contains all sources required to build changed 
+				projects and actual meta-data (distro indices: pre-parsed names, 
+				reqires, etc...).
+	2xxx - cached to output (mode: source, stage: prepare)
+				output contains and actual meta-data.
+	3xxx - output to distro (mode: image, prepare | util)
+				distro contains indices and exported items (in their project's locations)
+	4xxx - distro to deploy (prepare | util | install )
+				deploy tasks are executed upon
 
 2101-install-start-setup-environment
 

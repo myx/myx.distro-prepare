@@ -7,11 +7,12 @@ if [ -z "$MMDAPP" ] ; then
 	[ -d "$MMDAPP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
 fi
 
-. "$MMDAPP/source/myx/myx.distro-prepare/sh-lib/DistroFromSource.include"
+. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/DistroSourceCommand.fn.sh"
 
-DistroFromSource \
-	--source-root "$MMDAPP/source" \
+DistroSourceCommand \
 	--output-root "$MMDAPP/output" \
+	--source-root "${MDSC_SOURCE:-$MMDAPP/source}" \
+	--cached-root "${MDSC_CACHED:-$MMDAPP/output/cached}" \
 	"$@" \
 	--print ''
 
@@ -27,6 +28,10 @@ exit 0
 
 # distro-source.sh --import-from-source --print-repositories --print ""
 # distro-source.sh --import-from-source --print-projects --print ""
+# distro-source.sh --import-from-source --select-project "myx/clean-boot" --print-provides --print ""
+# distro-source.sh --import-from-source --print-provides --print ""
+
+# distro-source.sh --import-from-source --select-project "myx/clean-boot" --print-selected --print ""
 
 
 ./distro/distro-source-prepare-output.command

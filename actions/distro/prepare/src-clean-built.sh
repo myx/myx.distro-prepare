@@ -7,4 +7,4 @@ if [ -z "$MMDAPP" ] ; then
 	[ -d "$MMDAPP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
 fi
 
-"$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/clean-source-outputs.sh"
+"$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/CleanSourceOutputs.fn.sh"

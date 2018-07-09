@@ -49,13 +49,13 @@ public class Repository {
 	try (final InputStream in = Files.newInputStream(infPath)) {
 	    info.load(in);
 	}
-	final String name = info.getProperty("Name", "").trim();
-	if (name.length() == 0) {
+	final String checkName = info.getProperty("Name", "").trim();
+	if (checkName.length() == 0) {
 	    // 'Name' is mandatory
 	    System.err.println(Repository.class.getSimpleName() + ": skipped, no 'Name' in repository.inf");
 	    return null;
 	}
-	if (!name.equals(repositoryName)) {
+	if (!checkName.equals(repositoryName)) {
 	    // 'Name' is mandatory
 	    System.err.println(Repository.class.getSimpleName()
 		    + ": skipped, 'Name' not equal actual folder name in repository.inf, folder: " + repositoryName);
@@ -85,10 +85,8 @@ public class Repository {
     }
 
     boolean addKnown(final Project project) {
-	this.byName.put(project.getName(), project);
-	this.byName.put(project.repo.name + '/' + project.getName(), project);
-	this.addProvides(project, new OptionListItem(project.getName()));
-	this.addProvides(project, new OptionListItem(project.repo.name + '/' + project.getName()));
+	// this.byName.put(project.getName(), project);
+	this.byName.put(project.getFullName(), project);
 	return true;
     }
 
@@ -150,7 +148,8 @@ public class Repository {
 		    for (final Project project : provides.get(provide)) {
 			builder.append(project.repo.name).append('/').append(project.name).append(' ');
 		    }
-		    info.setProperty("PRV-" + provide, builder.toString().trim());
+		    // not really needed (yet?)
+		    // info.setProperty("PRV-" + provide, builder.toString().trim());
 		}
 	    }
 

@@ -143,7 +143,7 @@ public class MakeCompileJava {
 
 	{
 	    for (final String classPath : Files
-		    .readAllLines(outputRoot.resolve("cached").resolve("java-classpath.txt"))) {
+		    .readAllLines(outputRoot.resolve("cached").resolve("distro-classpath.txt"))) {
 		this.classPaths.add(new File(classPath));
 
 		this.log("      class-path: " + classPath);

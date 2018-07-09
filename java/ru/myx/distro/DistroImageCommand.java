@@ -88,7 +88,7 @@ public class DistroImageCommand extends AbstractDistroCommand {
 	    }, "--prepare-build-distro-index");
 
 	    AbstractCommand.registerOperation(operations, context -> {
-		context.repositories.buildCalculateSequence();
+		context.repositories.buildCalculateSequence(context.buildQueue);
 
 		DistroImageCommand.prepareCheckBuildRoots(context.outputRoot);
 
@@ -109,7 +109,6 @@ public class DistroImageCommand extends AbstractDistroCommand {
 		    throw new IllegalArgumentException("project name is expected");
 		}
 
-		context.repositories.buildCalculateSequence();
 		context.doSelectProject(context.arguments.next());
 		context.doSelectRequired();
 		return context.build();
@@ -120,14 +119,13 @@ public class DistroImageCommand extends AbstractDistroCommand {
 		    throw new IllegalArgumentException("repository name is expected");
 		}
 
-		context.repositories.buildCalculateSequence();
 		context.doSelectRepository(context.arguments.next());
 		context.doSelectRequired();
 		return context.build();
 	    }, "--build-repository");
 
 	    AbstractCommand.registerOperation(operations, context -> {
-		context.repositories.buildCalculateSequence();
+		context.repositories.buildCalculateSequence(null);
 		context.doSelectAll();
 		return context.build();
 	    }, "--build-all");

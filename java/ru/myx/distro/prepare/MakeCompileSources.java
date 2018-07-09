@@ -69,8 +69,8 @@ public class MakeCompileSources extends AbstractDistroCommand {
 
 	    final String projectName = context.arguments.next();
 
-	    context.repositories.buildCalculateSequence();
 	    context.doSelectProject(projectName);
+	    context.doSelectRequired();
 
 	    final MakeCompileJava javaCompiler = new MakeCompileJava(//
 		    context.sourceRoot.normalize(), //

@@ -1,31 +1,14 @@
-
-if [ "`type -t SyncCacheFromSourceRepository`" != "function" ] ; then
-. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/sync-cache-from-source-repository.sh"
-fi
-if [ "`type -t DistroFromSource`" != "function" ] ; then
-. "$MMDAPP/source/myx/myx.distro-prepare/sh-lib/DistroFromSource.include"
-fi
+Require ListAllRepositories
+Require SyncSourceRepositoryToCached
 
 PrepareSyncSourceCheckChanges(){
-	for REPO in $SOURCE_REPOS ; do
-		Async -2 SyncCacheFromSourceRepository "$REPO"
+	for REPO in $( ListAllRepositories ) ; do
+		Async -2 SyncSourceRepositoryToCached "$REPO"
 	done
 	wait
-
-	mkdir -p "$MMDAPP/output/distro"
-	
-	( \
-		DistroFromSource \
-			-v \
-			--source-root "$MMDAPP/cached/source" \
-			--output-root "$MMDAPP/output" \
-			--import-from-source --select-all-from-source \
-			--prepare-build \
-			--print '' \
-	)
 }
 
 PrepareSyncSourceCheckChanges
 
-#			--prepare-build-roots --prepare-build-compile-index --prepare-build-distro-index \
+#			--prepare-build-roots --prepare-build-cached-index --prepare-build-distro-index \
 #			--prepare-build-roots --prepare-build-compile-index --prepare-build-distro-index --prepare-build-fetch-missing \
