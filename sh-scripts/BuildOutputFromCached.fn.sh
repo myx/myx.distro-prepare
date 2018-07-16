@@ -16,7 +16,7 @@ type Prefix >/dev/null 2>&1 || \
 
 Require ListAllRepositories
 Require ListAllProjects
-Require ListSourceBuilders
+Require ListAllBuilders
 
 
 RebuildOutputFromCachedBuilderRaw(){
@@ -50,7 +50,7 @@ BuildOutputFromCachedRunner(){
 	
 	export OUTPUT_PATH="$MMDAPP/output"
 
-	for BUILDER in $( ListSourceBuilders --2 ) ; do
+	for BUILDER in $( ListAllBuilders source-process --2 ) ; do
 		Prefix "c $( basename $BUILDER )" RebuildOutputFromCachedBuilderRaw "$BUILDER"
 		wait
 	done

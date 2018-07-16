@@ -45,7 +45,7 @@ complete -W "\`ListAllActions --completion\`"    "Action"
 complete -W "\`DistroListDistroScripts --type prepare\`" "Distro.Prepare"
 complete -W "\`DistroListDistroScripts --type util\`" "Distro.Util"
 
-PS1="MDPC: $PS1"
+PS1="MDPC: \`printf "\$MDSC_INMODE"\`: $PS1"
 export PS1
 
 ### testing

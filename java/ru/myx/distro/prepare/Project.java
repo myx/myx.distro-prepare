@@ -205,7 +205,7 @@ public class Project {
 	    }
 	}
 	{
-	    for (final String type : new String[] { "data", "docs", "host", "jars" }) {
+	    for (final String type : new String[] { "data", "docs", "host", "jars", "image-process" }) {
 		final Path dataSourcePath = this.projectSourceRoot.resolve(type);
 		if (Files.isDirectory(dataSourcePath)) {
 		    final Path dataOutputPath = projectOutput.resolve(type);
@@ -628,14 +628,6 @@ public class Project {
 	    if (Files.isDirectory(source)) {
 		this.lstProvides.add(new OptionListItem("project-data", "data.tbz"));
 		this.lstContains.add("data.tbz");
-		console.outProgress('l');
-	    }
-	}
-	{
-	    final Path source = projectRoot.resolve("docs");
-	    if (Files.isDirectory(source)) {
-		this.lstProvides.add(new OptionListItem("project-docs", "docs.tbz"));
-		this.lstContains.add("docs.tbz");
 		console.outProgress('l');
 	    }
 	}

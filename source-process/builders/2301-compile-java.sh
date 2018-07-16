@@ -29,7 +29,7 @@ CompileJavaSources(){
 
  
 for PKG in $( ListChangedSourceProjects ) ; do
-	if test ! -z "$( ListProjectProvides "$PKG" "build-prepare" | grep -e "^compile-java$" )" ; then
+	if [ ! -z "$( ListProjectProvides "$PKG" "source-process" | grep -e "^compile-java$" )" ] ; then
 		Async "`basename "$PKG"`" CompileJavaSources "$PKG"
 		wait
 	fi

@@ -17,6 +17,11 @@ public abstract class AbstractCommand extends OperationContext implements Operat
 
 	{
 	    AbstractCommand.registerOperation(operations, context -> {
+		AbstractCommand.doPrintSyntax(context, operations);
+		return true;
+	    }, "--help", "--print-syntax");
+
+	    AbstractCommand.registerOperation(operations, context -> {
 		context.console.setSilent(false);
 		context.console.setVerbose(true);
 		context.console.setDebug(false);

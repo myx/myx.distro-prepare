@@ -13,27 +13,31 @@ if ! type DistroShellContext >/dev/null 2>&1 ; then
 fi
 
 Require ListAllProjects
-Require ListSourceProjectBuilders
+Require ListProjectBuilders
 
-ListAllSourceBuildersRaw(){
+ListAllBuildersRaw(){
+	local stageType="$1"
+	if [ -z "$1" ] ; then
+		echo "ListAllBuildersRaw: 'stageType' argument is required!" >&2 ; return 1
+	fi
 	for PKG in $( ListAllProjects ) ; do
-		ListSourceProjectBuilders "$PKG" "$@"
+		ListProjectBuilders "$PKG" "$@"
 	done
 }
 
-ListSourceBuilders(){
-	ListAllSourceBuildersRaw "$@" |\
+ListAllBuilders(){
+	ListAllBuildersRaw "$@" |\
 				    awk -v FS=/ -v OFS=/ '{ print $NF,$0 }' |\
 				    sort -n -t / |\
 				    cut -f2- -d/
 }
 
 case "$0" in
-	*/sh-scripts/ListSourceBuilders.fn.sh) 
+	*/sh-scripts/ListAllBuilders.fn.sh) 
 
 		. "$( dirname $0 )/../sh-lib/DistroShellContext.include"
 		DistroShellContext --distro-from-source
 		
-		ListSourceBuilders "$@"
+		ListAllBuilders "$@"
 	;;
 esac

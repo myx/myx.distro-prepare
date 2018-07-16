@@ -14,6 +14,7 @@ import ru.myx.distro.prepare.Repository;
 
 public abstract class AbstractRepositoryCommand extends AbstractCommand {
     protected static final Map<String, OperationObject<? super AbstractRepositoryCommand>> OPERATIONS;
+
     static {
 	OPERATIONS = new HashMap<>();
 	AbstractRepositoryCommand.OPERATIONS.putAll(AbstractCommand.OPERATIONS);

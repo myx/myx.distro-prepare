@@ -16,7 +16,7 @@ MakeProjectSourceArchive(){
 }
 
 for PKG in $( ListChangedSourceProjects ) ; do
-	if test ! -z "$( ListProjectProvides "$PKG" "build-prepare" | grep -e "^project-source.tgz$" )" ; then
+	if test ! -z "$( ListProjectProvides "$PKG" "source-process" | grep -e "^project-source.tgz$" )" ; then
 		Async "`basename "$PKG"`" MakeProjectSourceArchive "$PKG"
 		wait
 	fi

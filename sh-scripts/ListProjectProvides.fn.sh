@@ -7,6 +7,11 @@ if [ -z "$MMDAPP" ] ; then
 	[ -d "$MMDAPP/source" ] || ( echo "expecting 'source' directory." >&2 && return 1 )
 fi
 
+if ! type DistroShellContext >/dev/null 2>&1 ; then
+	. "$MMDAPP/source/myx/myx.distro-prepare/sh-lib/DistroShellContext.include"
+	DistroShellContext --distro-default
+fi
+
 ListProjectProvides(){
 	local projectName="$1"
 	if [ -z "$projectName" ] ; then
@@ -18,8 +23,8 @@ ListProjectProvides(){
 		shift
 		
 		( \
-			type ListProjectSequence >/dev/null 2>&1 || \
-			. "$MMDAPP/source/myx/myx.distro-prepare/sh-scripts/ListProjectSequence.fn.sh" ;
+			Require ListProjectSequence
+			
 			for sequenceProjectName in $( ListProjectSequence "$projectName" ) ; do
 				ListProjectProvides "$sequenceProjectName" "$@"
 			done	
@@ -54,12 +59,12 @@ ListProjectProvides(){
 		local cacheFile="$MDSC_CACHED/$projectName/project-provides.txt"
 		if [ ! -z "$MDSC_CACHED" ] && [ -f "$cacheFile" ] && \
 			( [ -z "$BUILD_STAMP" ] || [ "$BUILD_STAMP" -lt "`date -u -r "$cacheFile" "+%Y%m%d%H%M%S"`" ] ) ; then
-			echo "ListProjectProvides: using cached ($MDSC_OPTION)" >&2
+			echo "ListProjectProvides: $projectName: using cached ($MDSC_OPTION)" >&2
 			cat "$cacheFile"
 			return 0
 		fi
 		if [ ! -z "$MDSC_CACHED" ] && [ -d "$MDSC_CACHED" ] ; then
-			echo "ListProjectProvides: caching projects ($MDSC_OPTION)" >&2
+			echo "ListProjectProvides: $projectName: caching projects ($MDSC_OPTION)" >&2
 			ListProjectProvides "$projectName" --no-cache "$@" > "$cacheFile"
 			cat "$cacheFile"
 			return 0
@@ -70,7 +75,7 @@ ListProjectProvides(){
 	if [ ! -z "$MDSC_CACHED" ] && [ -f "$indexFile" ] && \
 		( [ "$MDSC_INMODE" = "distro" ] || [ -z "$BUILD_STAMP" ] || [ "$BUILD_STAMP" -lt "`date -u -r "$indexFile" "+%Y%m%d%H%M%S"`" ] ) ; then
 		
-		echo "ListProjectProvides: using index ($MDSC_OPTION)" >&2
+		echo "ListProjectProvides: $projectName: using index ($MDSC_OPTION)" >&2
 		local MTC="PRJ-PRV-$projectName="
 		# echo ">>>>>> MTC: $MTC"
 		
@@ -83,10 +88,9 @@ ListProjectProvides(){
 	fi
 	
 	if [ "$MDSC_INMODE" = "source" ] && [ -f "$MDSC_SOURCE/$projectName/project.inf" ] ; then
-		echo "ListProjectProvides: extracting from source (java) ($MDSC_OPTION)" >&2
+		echo "ListProjectProvides: $projectName: extracting from source (java) ($MDSC_OPTION)" >&2
 
-		type DistroSourceCommand >/dev/null 2>&1 || \
-		. "$MDSC_SOURCE/myx/myx.distro-prepare/sh-scripts/DistroSourceCommand.fn.sh"
+		Require DistroSourceCommand
 		
 		DistroSourceCommand \
 			-q \
@@ -100,7 +104,7 @@ ListProjectProvides(){
 		return 0
 	fi
 	
-	echo "ERROR: ListProjectProvides: project.inf file is required (at: $indexFile)" >&2 ; return 1
+	echo "ERROR: ListProjectProvides: $projectName: project.inf file is required (at: $indexFile)" >&2 ; return 1
 }
 
 case "$0" in
@@ -117,9 +121,6 @@ case "$0" in
 			echo "syntax: ListProjectProvides.fn.sh [--help] <project_name> [--merge-sequence] [--print-project] [--no-cache] [filter_by]" >&2
 			return 1
 		fi
-
-		. "$( dirname $0 )/../sh-lib/DistroShellContext.include"
-		DistroShellContext --distro-default
 		
 		ListProjectProvides "$@"
 	;;

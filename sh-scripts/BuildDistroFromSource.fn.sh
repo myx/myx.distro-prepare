@@ -31,7 +31,7 @@ BuildDistroFromOutputRunner(){
 	
 	DistroShellContext --distro-from-output
 	
-	for BUILDER in $( ListSourceBuilders --3 ) ; do
+	for BUILDER in $( ListAllBuilders image-prepare --3 ) ; do
 		Prefix "o $( basename $BUILDER )" RebuildOutputFromCachedBuilderRaw "$BUILDER"
 		wait
 	done

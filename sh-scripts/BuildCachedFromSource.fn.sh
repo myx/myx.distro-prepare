@@ -13,7 +13,7 @@ fi
 
 Require ListAllRepositories
 Require ListAllProjects
-Require ListSourceBuilders
+Require ListAllBuilders
 
 
 RebuildCachedFromSourceBuilderRaw(){
@@ -46,7 +46,7 @@ BuildCachedFromSourceRunner(){
 		return 1
 	fi
 	
-	for BUILDER in $( ListSourceBuilders --1 ) ; do
+	for BUILDER in $( ListAllBuilders source-prepare --1 ) ; do
 		Prefix "s $( basename $BUILDER )" RebuildCachedFromSourceBuilderRaw "$BUILDER"
 		wait
 	done

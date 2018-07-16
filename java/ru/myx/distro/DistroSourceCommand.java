@@ -273,7 +273,7 @@ public class DistroSourceCommand extends AbstractDistroCommand {
 	this.console.outDebug("check compile updated or missing java class files");
 
 	final Set<Project> providers = this.repositories
-		.getProvides(new OptionListItem("build-prepare", "compile-java"));
+		.getProvides(new OptionListItem("source-process", "compile-java"));
 
 	this.console.outWarn("SKIPPED, providers: " + providers);
     }

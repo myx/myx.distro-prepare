@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -235,7 +236,12 @@ public final class Distro {
     }
 
     public Set<Project> getProvides(final OptionListItem name) {
-	return this.byProvides.get(name.getName());
+	final String requireString = name.getName();
+	final Project projectExact = this.getProject(requireString);
+	if (projectExact != null) {
+	    return Collections.singleton(projectExact);
+	}
+	return this.byProvides.get(requireString);
     }
 
     public Iterable<Repository> getRepositories() {

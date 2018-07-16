@@ -53,8 +53,8 @@ MergeScripts(){
 	echo "# end of merge " >> "$OUTPUT_DST"
 }
 
-for projectName in `ListChangedSourceProjects` ; do
-	for ITEM in `ListProjectProvides "$projectName" "build-prepare-merge-scripts"` ; do
+for projectName in $( ListChangedSourceProjects ) ; do
+	for ITEM in $( ListProjectProvides "$projectName" "source-process-merge-scripts" ) ; do
 		Async -2 MergeScripts "$projectName" ` echo $ITEM | tr '\\' ' ' | sed "s|:| |g" `
 		wait
 	done

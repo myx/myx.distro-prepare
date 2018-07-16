@@ -496,47 +496,69 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 
 	final QueueSelection selected = new QueueSelection();
 	final LinkedList<Project> queue = new LinkedList<>(this.buildQueue);
-	final Map<String, Project> known = new TreeMap<>();
+	final Map<String, Project> seen = new TreeMap<>();
+	final Map<String, Project> know = new TreeMap<>();
+
+	this.buildQueue.clear();
 
 	queue: for (;;) {
 	    final Project project = queue.pollFirst();
 	    if (project == null) {
 		this.console.outDebug("BQ-DONE");
+		this.buildQueue.addAll(selected);
+		selected.clear();
 		break queue;
 	    }
-	    this.console.outDebug("BQ-NEXT: ", project, ", selected: ", selected);
 
-	    int added = 0;
+	    if (seen.putIfAbsent(project.getFullName(), project) == null) {
+		this.console.outDebug("BQ-FLSH: ", project, ", selected: ", selected);
+		this.buildQueue.addAll(selected);
+		selected.clear();
+	    }
 
-	    for (final OptionListItem requires : project.getRequires()) {
+	    if (know.containsKey(project.getFullName())) {
+		this.console.outDebug("BQ-SKIP: ", project, ", selected: ", selected);
+		continue queue;
+	    }
+	    {
+		this.console.outDebug("BQ-NEXT: ", project, ", selected: ", selected);
+		queue.addFirst(project);
+		int added = 0;
 
-		this.console.outDebug(" RQ-NEXT: ", requires);
-		final Set<Project> providers = this.repositories.getProvides(requires);
-		if (providers == null) {
-		    throw new IllegalArgumentException("required item is unknown, name: " + requires);
+		for (final OptionListItem requires : project.getRequires()) {
+
+		    this.console.outDebug("  RQ-NEXT: ", requires);
+		    final Set<Project> providers = this.repositories.getProvides(requires);
+		    if (providers == null) {
+			throw new IllegalArgumentException("required item is unknown, name: " + requires + ", "
+				+ this.repositories.getProject(requires.getName()));
+		    }
+
+		    for (final Project provider : providers) {
+			// this.console.outDebug(" PV-NEXT: ", provider, ", known: ", known);
+			if (seen.putIfAbsent(provider.getFullName(), provider) == null) {
+			    // this.console.outDebug("BQ-QUE3: ", provider, ", selected: ", selected);
+			    queue.addFirst(provider);
+			    ++added;
+			}
+		    }
+
 		}
 
-		for (final Project provider : providers) {
-		    this.console.outDebug(" PV-NEXT: ", provider, ", known: ", known);
-		    if (known.putIfAbsent(provider.getFullName(), provider) == null) {
-			if (added == 0) {
-			    if (known.putIfAbsent(project.getFullName(), project) == null) {
-				queue.addFirst(project);
-				this.console.outDebug("BQ-SEL2: ", project, ", known: ", known);
-				selected.addFirst(project);
-			    }
-			}
-			queue.addFirst(provider);
-			this.console.outDebug("BQ-SEL3: ", provider, ", known: ", known);
-			selected.addFirst(provider);
-			++added;
+		if (added == 0) {
+		    queue.pollFirst();
+		    if (know.putIfAbsent(project.getFullName(), project) == null) {
+			selected.addLast(project);
+			// this.console.outDebug("BQ-SEL0: ", project, ", selected: ", selected);
 		    }
+		    // this.buildQueue.addAll(selected);
+		    // selected.clear();
 		}
 	    }
+
 	    continue queue;
 	}
 
-	this.buildQueue = selected;
     }
 
     public void doSyncDistroFromCached() throws Exception {
@@ -594,7 +616,7 @@ public abstract class AbstractDistroCommand extends AbstractRepositoryCommand {
 		    command.doSync();
 		}
 		for (final String folderName : new String[] { //
-			"jars", "host", }) {
+			"jars", "host", "image-process" }) {
 
 		    final FolderSyncCommand command = new FolderSyncCommand(//
 			    FolderSyncOption.DELETE_MISSNG, //

@@ -7,16 +7,25 @@ if [ -z "$MMDAPP" ] ; then
 	[ -d "$MMDAPP/source" ] || ( echo "expecting 'source' directory." >&2 && exit 1 )
 fi
 
+if ! type DistroShellContext >/dev/null 2>&1 ; then
+	. "$MMDAPP/source/myx/myx.distro-prepare/sh-lib/DistroShellContext.include"
+	DistroShellContext --distro-default
+fi
 
-ListSourceProjectBuilders(){
+
+ListProjectBuilders(){
 	local projectName="$1"
 	if [ -z "$projectName" ] ; then
 		echo "ListSourceProjectProvides: 'projectName' argument is required!" >&2 ; return 1
 	fi
-	local buildersPath="$MMDAPP/source/$projectName/make-prepare/builders"
+	local stageType="$2"
+	if [ -z "$stageType" ] ; then
+		echo "ListSourceProjectProvides: 'stageType' argument is required!" >&2 ; return 1
+	fi
+	local buildersPath="$MMDAPP/source/$projectName/$stageType/builders"
 	[ -d "$buildersPath" ] || return 0
-	### only 1xxx - source-to-cached by default
-	local stageFilter="${2#--}"
+	### only 1xxx - source-prepare, source-to-cached by default
+	local stageFilter="${3#--}"
 	for LINE in $( \
 			find "$buildersPath" -mindepth 1 -type f -name $( \
 					[ -z "$stageFilter" ] && echo "????-*.sh" || echo "$stageFilter???-*.sh" \
@@ -27,12 +36,9 @@ ListSourceProjectBuilders(){
 }
 
 case "$0" in
-	*/sh-scripts/ListSourceProjectBuilders.fn.sh)
-		# ListSourceProjectBuilders myx/myx.distro-prepare 
-
-		. "$( dirname $0 )/../sh-lib/DistroShellContext.include"
-		DistroShellContext --distro-from-source
+	*/sh-scripts/ListProjectBuilders.fn.sh)
+		# ListProjectBuilders myx/myx.distro-prepare 
 		
-		ListSourceProjectBuilders "$@"
+		ListProjectBuilders "$@"
 	;;
 esac
